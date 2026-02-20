@@ -1,0 +1,2324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎓 Juego de Idiomas</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --azul: #4A90D9;
+    --rosa: #FF6B9D;
+    --amarillo: #FFD93D;
+    --verde: #6BCB77;
+    --morado: #9B5DE5;
+    --naranja: #FF9A3C;
+    --fondo: #FFF8F0;
+    --manuela: #9B5DE5;
+    --matilde: #FF6B9D;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--fondo);
+    background-image: radial-gradient(circle at 20% 20%, #FFE8F5 0%, transparent 50%),
+                      radial-gradient(circle at 80% 80%, #E8F0FF 0%, transparent 50%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+  }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--azul);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    color: #999;
+    font-size: 0.88rem;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+
+  /* ══ SCREENS ══ */
+  .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 440px; animation: fadeUp 0.35s ease; }
+  .screen.active { display: flex; }
+
+  /* ══ PANTALLA JUGADORA ══ */
+  .player-card {
+    background: white;
+    border-radius: 24px;
+    padding: 28px 24px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+    width: 100%;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .player-card h2 {
+    font-family: 'Fredoka One', cursive;
+    color: #555;
+    font-size: 1.2rem;
+    margin-bottom: 18px;
+  }
+  .player-opts {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+  .player-btn {
+    flex: 1;
+    max-width: 160px;
+    padding: 20px 12px 16px;
+    border-radius: 20px;
+    border: 3px solid #EEE;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+  }
+  .player-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
+  .player-btn .p-emoji { font-size: 2.8rem; display: block; margin-bottom: 8px; }
+  .player-btn .p-name { font-family: 'Fredoka One', cursive; font-size: 1.2rem; }
+  .player-btn.sel-manuela { border-color: var(--manuela); background: #F3EAFF; }
+  .player-btn.sel-manuela .p-name { color: var(--manuela); }
+  .player-btn.sel-matilde { border-color: var(--matilde); background: #FFE8F2; }
+  .player-btn.sel-matilde .p-name { color: var(--matilde); }
+
+  /* ══ PANTALLA AVATAR ══ */
+  .avatar-header {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .avatar-header.manuela { color: var(--manuela); }
+  .avatar-header.matilde { color: var(--matilde); }
+  .avatar-sub {
+    color: #AAA;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .avatar-btn {
+    aspect-ratio: 1;
+    border-radius: 16px;
+    border: 2.5px solid #EEE;
+    background: white;
+    font-size: 1.9rem;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  .avatar-btn:hover { border-color: var(--azul); transform: scale(1.1); }
+  .avatar-btn.av-sel-manuela { border-color: var(--manuela); background: #F3EAFF; transform: scale(1.15); box-shadow: 0 4px 14px rgba(155,93,229,0.35); }
+  .avatar-btn.av-sel-matilde { border-color: var(--matilde); background: #FFE8F2; transform: scale(1.15); box-shadow: 0 4px 14px rgba(255,107,157,0.35); }
+
+  .btn-confirm {
+    padding: 14px 40px;
+    background: linear-gradient(135deg, var(--azul), var(--morado));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(74,144,217,0.35);
+    transition: transform 0.15s;
+  }
+  .btn-confirm:hover { transform: translateY(-2px); }
+  .btn-confirm:disabled { opacity: 0.35; cursor: default; transform: none; box-shadow: none; }
+
+  /* ══ SETUP SCREEN ══ */
+  .setup-card {
+    background: white;
+    border-radius: 24px;
+    padding: 22px 20px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+    width: 100%;
+    margin-bottom: 14px;
+  }
+  .setup-card h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .opt-grid {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .opt-btn {
+    min-width: 80px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 2.5px solid #EEE;
+    background: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: #BBB;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    line-height: 1.3;
+  }
+  .opt-btn:hover { border-color: var(--azul); color: var(--azul); }
+  .opt-btn.sel-blue    { border-color: var(--azul);    background: var(--azul);    color: white; transform: scale(1.06); }
+  .opt-btn.sel-green   { border-color: var(--verde);   background: var(--verde);   color: white; transform: scale(1.06); }
+  .opt-btn.sel-orange  { border-color: var(--naranja); background: var(--naranja); color: white; transform: scale(1.06); }
+  .opt-btn.sel-purple  { border-color: var(--morado); background: var(--morado); color: white; transform: scale(1.06); }
+
+  /* ══ WHO'S PLAYING badge (in setup) ══ */
+  .who-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border-radius: 20px;
+    padding: 10px 18px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    margin-bottom: 18px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+  }
+  .who-badge .wb-avatar { font-size: 1.8rem; }
+  .who-badge.manuela { color: var(--manuela); }
+  .who-badge.matilde { color: var(--matilde); }
+  .who-badge .wb-change {
+    margin-left: auto;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #CCC;
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 4px 8px;
+    border-radius: 10px;
+    transition: color 0.2s;
+  }
+  .who-badge .wb-change:hover { color: var(--azul); }
+
+  .btn-start {
+    padding: 14px 40px;
+    background: linear-gradient(135deg, var(--azul), var(--morado));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(74,144,217,0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin-top: 6px;
+  }
+  .btn-start:hover { transform: translateY(-2px); }
+  .btn-start:disabled { opacity: 0.35; cursor: default; transform: none; box-shadow: none; }
+  .lang-flag { font-size: 1.4rem; display: block; margin-bottom: 3px; }
+
+  /* ══ GAME SCREEN ══ */
+  .progress-bar-wrap { width:100%; background:#EEE; border-radius:20px; height:10px; margin-bottom:6px; overflow:hidden; }
+  .progress-bar { height:100%; background:linear-gradient(90deg,var(--verde),var(--azul)); border-radius:20px; transition:width 0.4s ease; }
+  .progress-label { font-size:0.8rem; color:#BBB; text-align:right; width:100%; margin-bottom:16px; }
+
+  .score-row { display:flex; gap:14px; margin-bottom:16px; width:100%; }
+  .score-box { flex:1; background:white; border-radius:14px; padding:10px; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.06); }
+  .score-num { font-family:'Fredoka One',cursive; font-size:1.5rem; }
+  .score-label { font-size:0.7rem; color:#AAA; }
+  .score-box.green .score-num { color:var(--verde); }
+  .score-box.red   .score-num { color:var(--rosa); }
+
+  /* Player badge in game */
+  .game-player-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border-radius: 50px;
+    padding: 6px 14px 6px 8px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    margin-bottom: 14px;
+    align-self: flex-start;
+  }
+  .game-player-badge .gpb-av { font-size: 1.3rem; }
+  .game-player-badge.manuela { color: var(--manuela); }
+  .game-player-badge.matilde { color: var(--matilde); }
+
+  .game-card {
+    background:white; border-radius:28px; padding:26px 22px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.1); width:100%; text-align:center;
+    margin-bottom:16px; border:3px solid transparent; transition:border-color 0.3s;
+  }
+  .game-card.correct { border-color:var(--verde); }
+  .game-card.wrong   { border-color:var(--rosa); }
+
+  .repaso-badge { display:inline-block; background:#FFF0C8; color:var(--naranja); border-radius:20px; padding:3px 14px; font-size:0.76rem; font-weight:700; margin-bottom:12px; }
+  .card-emoji  { font-size:3rem; margin-bottom:8px; }
+  .card-word   { font-family:'Fredoka One',cursive; font-size:1.9rem; color:#333; margin-bottom:4px; }
+  .card-hint   { font-size:0.78rem; color:#CCC; margin-bottom:16px; }
+
+  /* Write mode */
+  .special-chars { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
+  .char-btn { padding:5px 11px; border-radius:10px; border:2px solid #DDD; background:white; font-family:'Nunito',sans-serif; font-size:0.95rem; font-weight:700; color:var(--azul); cursor:pointer; transition:all 0.15s; }
+  .char-btn:hover { background:var(--azul); color:white; border-color:var(--azul); }
+
+  .answer-input { width:100%; padding:13px 16px; border:2.5px solid #DDD; border-radius:14px; font-family:'Nunito',sans-serif; font-size:1.1rem; font-weight:700; color:#333; outline:none; transition:border 0.2s; text-align:center; margin-bottom:12px; }
+  .answer-input:focus { border-color:var(--azul); }
+  .answer-input.input-correct { border-color:var(--verde); background:#F0FFF4; color:#2E7D4F; }
+  .answer-input.input-wrong   { border-color:var(--rosa);  background:#FFF0F4; color:var(--rosa); }
+
+  /* Choice mode */
+  .choices-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; margin-bottom:12px; }
+  .choice-btn { padding:14px 10px; border-radius:16px; border:2.5px solid #EEE; background:white; font-family:'Nunito',sans-serif; font-size:0.95rem; font-weight:700; color:#444; cursor:pointer; transition:all 0.2s; text-align:center; line-height:1.3; }
+  .choice-btn:hover:not(:disabled) { border-color:var(--azul); color:var(--azul); background:#EAF3FF; }
+  .choice-btn.choice-correct { border-color:var(--verde); background:#D4F5DC; color:#2E7D4F; }
+  .choice-btn.choice-wrong   { border-color:var(--rosa);  background:#FFE0E8; color:var(--rosa); }
+  .choice-btn:disabled { cursor:default; }
+
+  /* Feedback */
+  .feedback { min-height:20px; font-size:0.88rem; font-weight:700; margin-bottom:8px; }
+  .feedback.ok   { color:var(--verde); }
+  .feedback.fail { color:var(--rosa); }
+  .correct-answer { font-size:0.84rem; color:#888; margin-bottom:12px; }
+  .correct-answer strong { color:var(--azul); }
+
+  /* Audio */
+  .btn-audio { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:white; border:2.5px solid var(--azul); border-radius:50px; font-family:'Nunito',sans-serif; font-size:0.88rem; font-weight:700; color:var(--azul); cursor:pointer; margin:2px 0 10px; transition:all 0.2s; }
+  .btn-audio:hover { background:var(--azul); color:white; }
+  .btn-audio.speaking { background:var(--azul); color:white; animation:pulse 0.8s infinite; }
+
+  /* Action buttons */
+  .btn-check { width:100%; padding:13px; background:var(--amarillo); border:none; border-radius:14px; font-family:'Fredoka One',cursive; font-size:1.05rem; color:#333; cursor:pointer; transition:transform 0.15s; box-shadow:0 4px 12px rgba(0,0,0,0.09); }
+  .btn-check:hover { transform:translateY(-2px); }
+  .btn-next  { width:100%; padding:13px; background:linear-gradient(135deg,var(--azul),var(--morado)); border:none; border-radius:14px; font-family:'Fredoka One',cursive; font-size:1.05rem; color:white; cursor:pointer; transition:transform 0.15s; box-shadow:0 4px 14px rgba(74,144,217,0.3); display:none; }
+  .btn-next:hover { transform:translateY(-2px); }
+
+  /* Back button */
+  .btn-back { background:none; border:none; color:#BBB; font-family:'Nunito',sans-serif; font-size:0.85rem; font-weight:700; cursor:pointer; margin-bottom:14px; padding:4px 10px; border-radius:20px; transition:color 0.2s; align-self:flex-start; }
+  .btn-back:hover { color:var(--azul); }
+
+  /* End screen */
+  .trophy { font-size:4rem; margin-bottom:8px; }
+  #endTitle { font-family:'Fredoka One',cursive; font-size:1.9rem; color:var(--morado); margin-bottom:8px; }
+  #endMsg { color:#666; margin-bottom:20px; font-size:0.92rem; text-align:center; }
+  .grade-circle { width:110px; height:110px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:8px auto 16px; box-shadow:0 6px 24px rgba(0,0,0,0.12); font-family:'Fredoka One',cursive; }
+  .grade-num { font-size:2.5rem; line-height:1; }
+  .grade-sub { font-size:0.7rem; opacity:0.8; }
+  .grade-10   { background:linear-gradient(135deg,#FFD700,#FFA500); color:white; }
+  .grade-high { background:linear-gradient(135deg,var(--verde),#2E7D4F); color:white; }
+  .grade-mid  { background:linear-gradient(135deg,var(--azul),var(--morado)); color:white; }
+  .grade-low  { background:linear-gradient(135deg,var(--naranja),var(--rosa)); color:white; }
+  .btn-restart { padding:12px 30px; background:var(--morado); color:white; border:none; border-radius:50px; font-family:'Fredoka One',cursive; font-size:1.05rem; cursor:pointer; margin-bottom:10px; box-shadow:0 4px 14px rgba(155,93,229,0.3); transition:transform 0.15s; }
+  .btn-restart:hover { transform:translateY(-2px); }
+
+  /* ══ VERB CONJUGATION SCREEN ══ */
+  .verb-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    color: var(--morado);
+    margin-bottom: 2px;
+  }
+  .verb-infinitive {
+    font-size: 0.85rem;
+    color: #AAA;
+    margin-bottom: 18px;
+  }
+  .conj-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .conj-pronoun {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    color: var(--azul);
+    min-width: 70px;
+    text-align: right;
+  }
+  .conj-input {
+    flex: 1;
+    padding: 11px 14px;
+    border: 2.5px solid #DDD;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333;
+    outline: none;
+    transition: border 0.2s;
+  }
+  .conj-input:focus { border-color: var(--azul); }
+  .conj-input.input-correct { border-color: var(--verde); background: #F0FFF4; color: #2E7D4F; }
+  .conj-input.input-wrong   { border-color: var(--rosa);  background: #FFF0F4; color: var(--rosa); }
+  .conj-input:disabled { background: #FAFAFA; }
+  .conj-correction {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--azul);
+    min-height: 18px;
+    margin-top: -6px;
+    margin-bottom: 4px;
+    padding-left: 82px;
+  }
+
+  /* Verb selector grid */
+  .verb-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 14px;
+  }
+  .verb-select-btn {
+    padding: 14px 10px;
+    border-radius: 16px;
+    border: 2.5px solid #EEE;
+    background: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    line-height: 1.3;
+  }
+  .verb-select-btn:hover { border-color: var(--morado); color: var(--morado); background: #F8F0FF; }
+  .verb-select-btn.sel-purple { border-color: var(--morado); background: var(--morado); color: white; transform: scale(1.04); }
+
+  /* Animations */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+  .shake { animation:shake 0.4s ease; }
+  @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)} }
+  .pop { animation:pop 0.3s ease; }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(74,144,217,0.4)} 50%{box-shadow:0 0 0 8px rgba(74,144,217,0)} }
+</style>
+</head>
+<body>
+
+<h1>🎓 Aprende Idiomas</h1>
+<p class="subtitle">¡Elige tus opciones y a jugar!</p>
+
+<!-- ══════════════════════════════════════
+     PANTALLA 1: ¿QUIÉN JUEGA?
+══════════════════════════════════════ -->
+<div class="screen active" id="screenPlayer">
+  <div class="player-card">
+    <h2>👧 ¿Quién juega hoy?</h2>
+    <div class="player-opts">
+      <button class="player-btn" id="btnManuela" onclick="selectPlayer('manuela')">
+        <span class="p-emoji" id="manuelaEmoji">🎀</span>
+        <span class="p-name">Manuela</span>
+      </button>
+      <button class="player-btn" id="btnMatilde" onclick="selectPlayer('matilde')">
+        <span class="p-emoji" id="matildeEmoji">⭐</span>
+        <span class="p-name">Matilde</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA 2: ELIGE TU AVATAR
+══════════════════════════════════════ -->
+<div class="screen" id="screenAvatar">
+  <div class="avatar-header" id="avatarTitle">¡Hola Manuela!</div>
+  <div class="avatar-sub">Elige tu icono favorito de hoy 👇</div>
+  <div class="avatar-grid" id="avatarGrid"></div>
+  <button class="btn-confirm" id="btnConfirmAvatar" onclick="confirmAvatar()" disabled>¡Este es el mío! ✨</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA 3: OPCIONES DEL JUEGO
+══════════════════════════════════════ -->
+<div class="screen" id="screenSetup">
+
+  <!-- Badge jugadora -->
+  <div class="who-badge" id="whoBadge">
+    <span class="wb-avatar" id="whoBadgeAvatar">🎀</span>
+    <span id="whoBadgeName">Manuela</span>
+    <button class="wb-change" onclick="goScreen('screenPlayer')">cambiar</button>
+  </div>
+
+  <!-- Idioma -->
+  <div class="setup-card" id="cardLang">
+    <h2>🌍 ¿Qué idioma?</h2>
+    <div class="opt-grid" id="langOptions"></div>
+  </div>
+
+  <!-- ¿Qué practicar? -->
+  <div class="setup-card" id="cardActivity" style="display:none">
+    <h2>🎯 ¿Qué quieres practicar?</h2>
+    <div class="opt-grid" id="activityOptions"></div>
+  </div>
+
+  <!-- Tema (solo vocabulario) -->
+  <div class="setup-card" id="cardTopic" style="display:none">
+    <h2>📚 ¿Qué tema?</h2>
+    <div class="opt-grid" id="topicOptions"></div>
+  </div>
+
+  <!-- Modo (solo vocabulario) -->
+  <div class="setup-card" id="cardMode" style="display:none">
+    <h2>🎮 ¿Cómo quieres jugar?</h2>
+    <div class="opt-grid">
+      <button class="opt-btn" onclick="pick('mode','write',this)">
+        ✍️<br>Escribir
+      </button>
+      <button class="opt-btn" onclick="pick('mode','choice',this)">
+        🔘<br>Elegir<br><small style="font-size:0.7rem;font-weight:600">4 opciones</small>
+      </button>
+      <button class="opt-btn" onclick="pick('mode','listen',this)">
+        🔊<br>Escuchar<br><small style="font-size:0.7rem;font-weight:600">4 opciones</small>
+      </button>
+      <button class="opt-btn" onclick="pick('mode','mix',this)">
+        🎲<br>Mix<br><small style="font-size:0.7rem;font-weight:600">¡de todo!</small>
+      </button>
+    </div>
+  </div>
+
+  <!-- Cuántas (solo vocabulario) -->
+  <div class="setup-card" id="cardNum" style="display:none">
+    <h2>🔢 ¿Cuántas palabras?</h2>
+    <div class="opt-grid" id="numOptions"></div>
+  </div>
+
+  <!-- Verbo (solo verbos francés) -->
+  <div class="setup-card" id="cardVerb" style="display:none">
+    <h2>📝 ¿Qué verbo quieres conjugar?</h2>
+    <div class="verb-grid" id="verbOptions"></div>
+  </div>
+
+  <!-- Cuántos verbos irregulares -->
+  <div class="setup-card" id="cardIrregNum" style="display:none">
+    <h2>🔢 ¿Cuántos verbos?</h2>
+    <div class="opt-grid" id="irregNumOptions"></div>
+  </div>
+
+  <button class="btn-start" id="btnStart" onclick="startGame()" disabled>¡Empezar! 🚀</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA 4: JUEGO VOCABULARIO
+══════════════════════════════════════ -->
+<div class="screen" id="screenGame">
+  <button class="btn-back" onclick="goScreen('screenSetup')">← Menú</button>
+
+  <div class="game-player-badge" id="gamePlayerBadge">
+    <span class="gpb-av" id="gameAvatar">🎀</span>
+    <span id="gamePlayerName">Manuela</span>
+  </div>
+
+  <div class="score-row">
+    <div class="score-box green"><div class="score-num" id="scoreYes">0</div><div class="score-label">✅ Correctas</div></div>
+    <div class="score-box red">  <div class="score-num" id="scoreNo">0</div> <div class="score-label">❌ Errores</div></div>
+  </div>
+
+  <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+  <div class="progress-label" id="progressLabel"></div>
+
+  <div class="game-card" id="gameCard">
+    <div id="repassBadge" class="repaso-badge" style="display:none">📚 ¡A repasar! 2 veces más</div>
+    <div class="card-emoji" id="cardEmoji">🍞</div>
+    <div class="card-word"  id="cardWord">el pan</div>
+    <div class="card-hint"  id="cardHint">Escribe la traducción</div>
+  </div>
+
+  <div id="writeArea">
+    <div class="special-chars" id="specialChars"></div>
+    <input type="text" class="answer-input" id="answerInput"
+      placeholder="Escribe aquí..."
+      autocomplete="off" autocorrect="off" spellcheck="false"
+      onkeydown="handleKey(event)">
+  </div>
+
+  <div id="choiceArea" style="display:none">
+    <button class="btn-audio" id="btnListenRepeat" onclick="speakWord()" style="display:none">🔊 Repetir</button>
+    <div class="choices-grid" id="choicesGrid"></div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+  <div class="correct-answer" id="correctAnswer"></div>
+  <button class="btn-audio" id="btnAudio" onclick="speakWord()" style="display:none">🔊 Escuchar</button>
+
+  <button class="btn-check" id="btnCheck" onclick="checkAnswer()">Comprobar ✅</button>
+  <button class="btn-next"  id="btnNext"  onclick="nextCard()">Siguiente →</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA 4B: JUEGO VERBOS
+══════════════════════════════════════ -->
+<div class="screen" id="screenVerb">
+  <button class="btn-back" onclick="goScreen('screenSetup')">← Menú</button>
+
+  <div class="game-player-badge" id="verbPlayerBadge">
+    <span class="gpb-av" id="verbAvatar">🎀</span>
+    <span id="verbPlayerName">Manuela</span>
+  </div>
+
+  <div class="game-card" id="verbCard">
+    <div id="verbRepassBadge" class="repaso-badge" style="display:none">📚 ¡A repasar!</div>
+    <div class="card-emoji" id="verbEmoji">📝</div>
+    <div class="verb-title" id="verbTitleGame"></div>
+    <div class="verb-infinitive" id="verbInfinitive">Presente</div>
+  </div>
+
+  <div class="special-chars" id="verbSpecialChars"></div>
+
+  <div id="conjRows" style="width:100%"></div>
+
+  <div class="feedback" id="verbFeedback"></div>
+  <div class="progress-label" id="verbRepassLabel" style="display:none;text-align:center;width:100%;margin-bottom:8px"></div>
+  <button class="btn-audio" id="verbBtnAudio" onclick="speakVerb()" style="display:none">🔊 Escuchar</button>
+
+  <button class="btn-check" id="verbBtnCheck" onclick="checkVerb()">Comprobar ✅</button>
+  <button class="btn-next"  id="verbBtnNext"  onclick="nextVerbStep()" style="display:none">Siguiente →</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA 4C: VERBOS IRREGULARES
+══════════════════════════════════════ -->
+<div class="screen" id="screenIrreg">
+  <button class="btn-back" onclick="goScreen('screenSetup')">← Menú</button>
+
+  <div class="game-player-badge" id="irregPlayerBadge">
+    <span class="gpb-av" id="irregAvatar">🎀</span>
+    <span id="irregPlayerName">Manuela</span>
+  </div>
+
+  <div class="score-row">
+    <div class="score-box green"><div class="score-num" id="irregScoreYes">0</div><div class="score-label">✅ Correctas</div></div>
+    <div class="score-box red">  <div class="score-num" id="irregScoreNo">0</div> <div class="score-label">❌ Errores</div></div>
+  </div>
+
+  <div class="progress-bar-wrap"><div class="progress-bar" id="irregProgress" style="width:0%"></div></div>
+  <div class="progress-label" id="irregProgressLabel"></div>
+
+  <div class="game-card" id="irregCard">
+    <div id="irregRepassBadge" class="repaso-badge" style="display:none">📚 ¡A repasar!</div>
+    <div class="card-emoji" id="irregEmoji">🚶</div>
+    <div class="verb-title" id="irregVerb">ir</div>
+    <div class="verb-infinitive" id="irregPastNote"></div>
+  </div>
+
+  <div class="special-chars" id="irregSpecialChars" style="display:none"></div>
+
+  <div id="irregFields" style="width:100%">
+    <div class="conj-row">
+      <span class="conj-pronoun">Infinitive</span>
+      <input type="text" class="conj-input" id="irregInf" placeholder="..." autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="conj-correction" id="irregInfCorr"></div>
+
+    <div class="conj-row">
+      <span class="conj-pronoun">Past</span>
+      <input type="text" class="conj-input" id="irregPast" placeholder="..." autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="conj-correction" id="irregPastCorr"></div>
+
+    <div class="conj-row" id="irregPast2Row" style="display:none">
+      <span class="conj-pronoun">Past 2</span>
+      <input type="text" class="conj-input" id="irregPast2" placeholder="..." autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="conj-correction" id="irregPast2Corr"></div>
+
+    <div class="conj-row">
+      <span class="conj-pronoun">Participle</span>
+      <input type="text" class="conj-input" id="irregPP" placeholder="..." autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="conj-correction" id="irregPPCorr"></div>
+  </div>
+
+  <div class="feedback" id="irregFeedback"></div>
+  <button class="btn-audio" id="irregBtnAudio" onclick="speakIrreg()" style="display:none">🔊 Escuchar</button>
+
+  <button class="btn-check" id="irregBtnCheck" onclick="checkIrregular()">Comprobar ✅</button>
+  <button class="btn-next"  id="irregBtnNext"  onclick="nextIrregular()" style="display:none">Siguiente →</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA 5: FIN
+══════════════════════════════════════ -->
+<div class="screen" id="screenEnd" style="text-align:center">
+  <div class="trophy" id="endTrophy">🏆</div>
+  <div id="endTitle">¡Bien hecho!</div>
+  <div class="grade-circle" id="gradeCircle">
+    <div class="grade-num" id="gradeNum">8</div>
+    <div class="grade-sub">sobre 10</div>
+  </div>
+  <div id="endMsg"></div>
+  <button class="btn-restart" onclick="goScreen('screenSetup')">🔄 Jugar de nuevo</button>
+  <button class="btn-restart" style="background:var(--azul);margin-top:4px" onclick="goScreen('screenPlayer')">👧 Cambiar jugadora</button>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  A V A T A R E S
+// ════════════════════════════════════════════════════════
+const avatars = [
+  "🐱","🦄","👸","🧙‍♀️","🪆","🎈","🧁","🌸",
+  "🦋","🐼","🧸","🌈","⚡","🧚","🐸","💎",
+  "🎃","🧟‍♀️","🐙","🦊","🌟","🍭","🎠","👑",
+  "🐰","🦩","🧜‍♀️","🍄","🔮","🎯"
+];
+
+// ════════════════════════════════════════════════════════
+//  V O C A B U L A R I O
+// ════════════════════════════════════════════════════════
+const vocab = {
+
+  manuela: {
+    frances: {
+      "🍽️ Comidas": [
+        { es:"el pan",                tr:"le pain",              emoji:"🍞", alts:["pain","un pain","du pain"] },
+        { es:"el bocadillo",          tr:"le sandwich",          emoji:"🥪", alts:["sandwich","un sandwich"] },
+        { es:"la pasta",              tr:"les pâtes",            emoji:"🍝", alts:["les pates","pâtes","pates","des pâtes","des pates"] },
+        { es:"el arroz",              tr:"le riz",               emoji:"🍚", alts:["riz","du riz"] },
+        { es:"los cereales",          tr:"les céréales",         emoji:"🥣", alts:["les cereales","céréales","cereales","des céréales","des cereales"] },
+        { es:"la leche",              tr:"le lait",              emoji:"🥛", alts:["lait","du lait"] },
+        { es:"el queso",              tr:"le fromage",           emoji:"🧀", alts:["fromage","un fromage","du fromage"] },
+        { es:"el yogur",              tr:"le yaourt",            emoji:"🫙", alts:["yaourt","un yaourt","du yaourt","yogourt","le yogourt"] },
+        { es:"la mantequilla",        tr:"le beurre",            emoji:"🧈", alts:["beurre","du beurre"] },
+        { es:"el pollo",              tr:"le poulet",            emoji:"🍗", alts:["poulet","un poulet","du poulet"] },
+        { es:"el jamón",              tr:"le jambon",            emoji:"🥩", alts:["jambon","un jambon","du jambon"] },
+        { es:"el pescado",            tr:"le poisson",           emoji:"🐟", alts:["poisson","un poisson","du poisson"] },
+        { es:"el huevo",              tr:"l'œuf",                emoji:"🥚", alts:["l'oeuf","loeuf","oeuf","œuf","un œuf","un oeuf"] },
+        { es:"el chocolate",          tr:"le chocolat",          emoji:"🍫", alts:["chocolat","un chocolat","du chocolat"] },
+        { es:"la tarta",              tr:"le gâteau",            emoji:"🎂", alts:["le gateau","gâteau","gateau","un gâteau","un gateau"] },
+        { es:"el helado",             tr:"la glace",             emoji:"🍦", alts:["glace","une glace","de la glace"] },
+        { es:"las galletas",          tr:"les biscuits",         emoji:"🍪", alts:["biscuits","des biscuits"] },
+        { es:"las bebidas",           tr:"les boissons",         emoji:"🥤", alts:["boissons","des boissons"] },
+        { es:"el agua",               tr:"l'eau",                emoji:"💧", alts:["l'eau","leau","eau","de l'eau","de leau"] },
+        { es:"el zumo de naranja",    tr:"le jus d'orange",      emoji:"🍊", alts:["jus d'orange","jus dorange","un jus d'orange","du jus d'orange"] },
+        { es:"el zumo de manzana",    tr:"le jus de pomme",      emoji:"🍎", alts:["jus de pomme","un jus de pomme","du jus de pomme"] },
+        { es:"el chocolate caliente", tr:"le chocolat chaud",    emoji:"☕", alts:["chocolat chaud","un chocolat chaud","du chocolat chaud"] },
+        { es:"el té",                 tr:"le thé",               emoji:"🍵", alts:["thé","un thé","du thé"] },
+        { es:"la limonada",           tr:"la limonade",          emoji:"🍋", alts:["limonade","une limonade","de la limonade"] },
+        { es:"el batido",             tr:"le milkshake",         emoji:"🥤", alts:["milkshake","un milkshake"] },
+        { es:"el desayuno",           tr:"le petit-déjeuner",    emoji:"🌅", alts:["petit-dejeuner","petit déjeuner","le petit déjeuner","un petit-déjeuner"] },
+        { es:"la comida",             tr:"le déjeuner",          emoji:"🍽️", alts:["dejeuner","déjeuner","un déjeuner","un dejeuner"] },
+        { es:"la cena",               tr:"le dîner",             emoji:"🌙", alts:["diner","dîner","un dîner","un diner"] },
+        { es:"la merienda",           tr:"le goûter",            emoji:"🥐", alts:["gouter","goûter","un goûter","un gouter"] },
+        // ── Frutas y verduras ──
+        { es:"las frutas",             tr:"les fruits",             emoji:"🍎", alts:["fruits","des fruits"] },
+        { es:"la manzana",             tr:"la pomme",               emoji:"🍏", alts:["pomme","une pomme"] },
+        { es:"el plátano",             tr:"la banane",              emoji:"🍌", alts:["banane","une banane"] },
+        { es:"la naranja",             tr:"l'orange",               emoji:"🍊", alts:["lorange","orange","une orange"] },
+        { es:"la fresa",               tr:"la fraise",              emoji:"🍓", alts:["fraise","une fraise","des fraises","les fraises"] },
+        { es:"la pera",                tr:"la poire",               emoji:"🍐", alts:["poire","une poire"] },
+        { es:"las uvas",               tr:"les raisins",            emoji:"🍇", alts:["raisins","des raisins","le raisin","du raisin"] },
+        { es:"las verduras",           tr:"les légumes",            emoji:"🥦", alts:["les legumes","légumes","legumes","des légumes","des legumes"] },
+        { es:"la zanahoria",           tr:"la carotte",             emoji:"🥕", alts:["carotte","une carotte","des carottes","les carottes"] },
+        { es:"el tomate",              tr:"la tomate",              emoji:"🍅", alts:["tomate","une tomate","des tomates","les tomates"] },
+        { es:"la ensalada",            tr:"la salade",              emoji:"🥗", alts:["salade","une salade","de la salade"] },
+        { es:"la patata",              tr:"la pomme de terre",      emoji:"🥔", alts:["pomme de terre","une pomme de terre","des pommes de terre","les pommes de terre"] },
+        { es:"la cebolla",             tr:"l'oignon",               emoji:"🧅", alts:["loignon","oignon","un oignon","des oignons","les oignons"] },
+        { es:"el maíz",                tr:"le maïs",                emoji:"🌽", alts:["le mais","maïs","mais","du maïs","du mais"] },
+        { es:"los guisantes",          tr:"les petits pois",        emoji:"🫛", alts:["petits pois","des petits pois"] },
+        // ── Platos y más comidas ──
+        { es:"la carne",               tr:"la viande",              emoji:"🥩", alts:["viande","de la viande"] },
+        { es:"la sopa",                tr:"la soupe",               emoji:"🥣", alts:["soupe","une soupe","de la soupe"] },
+        { es:"el puré",                tr:"la purée",               emoji:"🥔", alts:["la puree","purée","puree","une purée","une puree","de la purée","de la puree"] },
+        { es:"las salchichas",         tr:"les saucisses",          emoji:"🌭", alts:["saucisses","des saucisses","la saucisse","une saucisse"] },
+        { es:"los espaguetis",         tr:"les spaghettis",         emoji:"🍝", alts:["spaghettis","des spaghettis","spaghetti"] },
+        { es:"las patatas fritas",     tr:"les frites",             emoji:"🍟", alts:["frites","des frites"] },
+        { es:"el croissant",           tr:"le croissant",           emoji:"🥐", alts:["croissant","un croissant","des croissants"] },
+        { es:"la tarta (tarte)",       tr:"la tarte",               emoji:"🥧", alts:["tarte","une tarte","de la tarte"] },
+        // ── Bebidas extra ──
+        { es:"el café con leche",      tr:"le café au lait",        emoji:"☕", alts:["le cafe au lait","café au lait","cafe au lait","un café au lait","un cafe au lait"] },
+        { es:"el zumo de frutas",      tr:"le jus de fruits",       emoji:"🧃", alts:["jus de fruits","un jus de fruits","du jus de fruits"] },
+        // ── Condimentos e ingredientes ──
+        { es:"la miel",                tr:"le miel",                emoji:"🍯", alts:["miel","du miel"] },
+        { es:"el aceite de oliva",     tr:"l'huile d'olive",        emoji:"🫒", alts:["lhuile dolive","huile d'olive","huile dolive","de l'huile d'olive","de lhuile dolive"] },
+        { es:"el kétchup",             tr:"le ketchup",             emoji:"🍅", alts:["ketchup","du ketchup"] },
+        { es:"la mayonesa",            tr:"la mayonnaise",          emoji:"🥚", alts:["mayonnaise","de la mayonnaise"] },
+        { es:"la sal",                 tr:"le sel",                 emoji:"🧂", alts:["sel","du sel"] },
+        { es:"el azúcar",              tr:"le sucre",               emoji:"🍬", alts:["sucre","du sucre"] },
+        { es:"la mermelada",           tr:"la confiture",           emoji:"🫙", alts:["confiture","une confiture","de la confiture"] },
+        // ── Cubiertos y vajilla ──
+        { es:"los cubiertos",          tr:"les couverts",           emoji:"🍴", alts:["couverts","des couverts"] },
+        { es:"la servilleta",          tr:"la serviette",           emoji:"🧻", alts:["serviette","une serviette","des serviettes","les serviettes"] },
+        { es:"la cuchara",             tr:"la cuillère",            emoji:"🥄", alts:["la cuillere","cuillère","cuillere","une cuillère","une cuillere"] },
+        { es:"el cuchillo",            tr:"le couteau",             emoji:"🔪", alts:["couteau","un couteau","des couteaux","les couteaux"] },
+        { es:"el tenedor",             tr:"la fourchette",          emoji:"🍴", alts:["fourchette","une fourchette","des fourchettes","les fourchettes"] },
+        { es:"el vaso",                tr:"le verre",               emoji:"🥛", alts:["verre","un verre","des verres"] },
+        { es:"la jarra",               tr:"la carafe",              emoji:"🫗", alts:["carafe","une carafe","des carafes","le pichet","un pichet"] },
+        { es:"la botella",             tr:"la bouteille",           emoji:"🍾", alts:["bouteille","une bouteille","des bouteilles"] },
+        { es:"la taza",                tr:"la tasse",               emoji:"☕", alts:["tasse","une tasse","des tasses"] },
+        { es:"el plato",               tr:"l'assiette",             emoji:"🍽️", alts:["lassiette","assiette","une assiette","des assiettes","les assiettes"] },
+      ],
+    },
+    ingles: {
+      "🌋 Tema 4: Disasters": [
+        // ── Sustantivos: desastres ──
+        { es:"los desastres",     tr:"disasters",    emoji:"💥", alts:["disaster"] },
+        { es:"el terremoto",      tr:"earthquake",   emoji:"🌍", alts:["an earthquake","the earthquake"] },
+        { es:"el huracán",        tr:"hurricane",    emoji:"🌀", alts:["a hurricane","the hurricane"] },
+        { es:"el iceberg",        tr:"iceberg",      emoji:"🧊", alts:["an iceberg","the iceberg"] },
+        { es:"el rayo",           tr:"lightning",    emoji:"⚡", alts:["the lightning"] },
+        { es:"la tormenta",       tr:"storm",        emoji:"⛈️", alts:["a storm","the storm"] },
+        { es:"el tsunami",        tr:"tsunami",      emoji:"🌊", alts:["a tsunami","the tsunami"] },
+        { es:"el volcán",         tr:"volcano",      emoji:"🌋", alts:["a volcano","the volcano"] },
+        // ── Verbos: acciones de desastres ──
+        { es:"romper",            tr:"break",        emoji:"💔", alts:["to break"] },
+        { es:"incendiarse",       tr:"catch fire",   emoji:"🔥", alts:["to catch fire"] },
+        { es:"cortar",            tr:"cut",          emoji:"✂️", alts:["to cut"] },
+        { es:"destruir",          tr:"destroy",      emoji:"💣", alts:["to destroy"] },
+        { es:"caer / dejar caer", tr:"drop",         emoji:"⬇️", alts:["to drop"] },
+        { es:"entrar en erupción",tr:"erupt",        emoji:"🌋", alts:["to erupt"] },
+        { es:"caerse / derrumbarse",tr:"fall down",  emoji:"🏚️", alts:["to fall down"] },
+        { es:"golpear",           tr:"hit",          emoji:"👊", alts:["to hit"] },
+        { es:"hacer daño / herir",tr:"hurt",         emoji:"🤕", alts:["to hurt"] },
+        { es:"perder",            tr:"lose",         emoji:"😞", alts:["to lose"] },
+        // ── Meses del año ──
+        { es:"los meses",         tr:"months",       emoji:"📅", alts:["the months"] },
+        { es:"enero",             tr:"January",      emoji:"❄️", alts:["january"] },
+        { es:"febrero",           tr:"February",     emoji:"💝", alts:["february"] },
+        { es:"marzo",             tr:"March",        emoji:"🌱", alts:["march"] },
+        { es:"abril",             tr:"April",        emoji:"🌧️", alts:["april"] },
+        { es:"mayo",              tr:"May",          emoji:"🌸", alts:["may"] },
+        { es:"junio",             tr:"June",         emoji:"☀️", alts:["june"] },
+        { es:"julio",             tr:"July",         emoji:"🏖️", alts:["july"] },
+        { es:"agosto",            tr:"August",       emoji:"🌻", alts:["august"] },
+        { es:"septiembre",        tr:"September",    emoji:"📚", alts:["september"] },
+        { es:"octubre",           tr:"October",      emoji:"🎃", alts:["october"] },
+        { es:"noviembre",         tr:"November",     emoji:"🍂", alts:["november"] },
+        { es:"diciembre",         tr:"December",     emoji:"🎄", alts:["december"] },
+      ],
+    },
+  },
+
+  matilde: {
+    ingles: {
+
+      "🎨 Colores": [
+        { es:"rojo", tr:"red", emoji:"🔴", alts:[] },
+        { es:"azul", tr:"blue", emoji:"🔵", alts:[] },
+        { es:"verde", tr:"green", emoji:"💚", alts:[] },
+        { es:"rosa", tr:"pink", emoji:"🩷", alts:[] },
+        { es:"morado", tr:"purple", emoji:"💜", alts:[] },
+        { es:"naranja", tr:"orange", emoji:"🟠", alts:[] },
+        { es:"amarillo", tr:"yellow", emoji:"💛", alts:[] },
+        { es:"negro", tr:"black", emoji:"⚫", alts:[] },
+        { es:"blanco", tr:"white", emoji:"⚪", alts:[] },
+        { es:"marrón", tr:"brown", emoji:"🟤", alts:[] },
+        { es:"gris", tr:"grey", emoji:"🩶", alts:["gray"] },
+        { es:"el arcoíris", tr:"rainbow", emoji:"🌈", alts:["a rainbow","the rainbow"] },
+      ],
+      "🔢 Números": [
+        { es:"uno", tr:"one", emoji:"1️⃣", alts:[] },
+        { es:"dos", tr:"two", emoji:"2️⃣", alts:[] },
+        { es:"tres", tr:"three", emoji:"3️⃣", alts:[] },
+        { es:"cuatro", tr:"four", emoji:"4️⃣", alts:[] },
+        { es:"cinco", tr:"five", emoji:"5️⃣", alts:[] },
+        { es:"seis", tr:"six", emoji:"6️⃣", alts:[] },
+        { es:"siete", tr:"seven", emoji:"7️⃣", alts:[] },
+        { es:"ocho", tr:"eight", emoji:"8️⃣", alts:[] },
+        { es:"nueve", tr:"nine", emoji:"9️⃣", alts:[] },
+        { es:"diez", tr:"ten", emoji:"🔟", alts:[] },
+        { es:"once", tr:"eleven", emoji:"🔢", alts:[] },
+        { es:"doce", tr:"twelve", emoji:"🔢", alts:[] },
+        { es:"trece", tr:"thirteen", emoji:"🔢", alts:[] },
+        { es:"catorce", tr:"fourteen", emoji:"🔢", alts:[] },
+        { es:"quince", tr:"fifteen", emoji:"🔢", alts:[] },
+        { es:"dieciséis", tr:"sixteen", emoji:"🔢", alts:[] },
+        { es:"diecisiete", tr:"seventeen", emoji:"🔢", alts:[] },
+        { es:"dieciocho", tr:"eighteen", emoji:"🔢", alts:[] },
+        { es:"diecinueve", tr:"nineteen", emoji:"🔢", alts:[] },
+        { es:"veinte", tr:"twenty", emoji:"🔢", alts:[] },
+      ],
+      "👋 Saludos": [
+        { es:"hola", tr:"hello", emoji:"👋", alts:["hi"] },
+        { es:"adiós", tr:"goodbye", emoji:"👋", alts:["bye","bye bye"] },
+        { es:"buenos días", tr:"good morning", emoji:"🌅", alts:[] },
+        { es:"buenas tardes", tr:"good afternoon", emoji:"🌤️", alts:[] },
+        { es:"buenas noches", tr:"good night", emoji:"🌙", alts:[] },
+        { es:"por favor", tr:"please", emoji:"🙏", alts:[] },
+        { es:"gracias", tr:"thank you", emoji:"😊", alts:["thanks"] },
+        { es:"sí", tr:"yes", emoji:"✅", alts:[] },
+        { es:"no", tr:"no", emoji:"❌", alts:[] },
+        { es:"estoy bien", tr:"I'm fine", emoji:"😊", alts:["I am fine"] },
+        { es:"¿cómo te llamas?", tr:"what's your name?", emoji:"🏷️", alts:["what is your name?"] },
+        { es:"¿cuántos años tienes?", tr:"how old are you?", emoji:"🎂", alts:[] },
+      ],
+      "🏫 El colegio": [
+        { es:"el libro", tr:"book", emoji:"📖", alts:["a book","the book"] },
+        { es:"la silla", tr:"chair", emoji:"🪑", alts:["a chair","the chair"] },
+        { es:"la goma de borrar", tr:"eraser", emoji:"🧽", alts:["an eraser","the eraser","rubber"] },
+        { es:"el bolígrafo", tr:"pen", emoji:"🖊️", alts:["a pen","the pen"] },
+        { es:"el lápiz", tr:"pencil", emoji:"✏️", alts:["a pencil","the pencil"] },
+        { es:"la mesa", tr:"table", emoji:"🪑", alts:["a table","the table"] },
+        { es:"la mochila", tr:"backpack", emoji:"🎒", alts:["a backpack","the backpack","bag","school bag"] },
+        { es:"la regla", tr:"ruler", emoji:"📏", alts:["a ruler","the ruler"] },
+        { es:"las tijeras", tr:"scissors", emoji:"✂️", alts:["the scissors"] },
+        { es:"el pegamento", tr:"glue", emoji:"🧴", alts:["the glue"] },
+        { es:"la pizarra", tr:"board", emoji:"📋", alts:["the board","blackboard","whiteboard"] },
+        { es:"el profesor", tr:"teacher", emoji:"👩‍🏫", alts:["a teacher","the teacher"] },
+        { es:"la clase", tr:"classroom", emoji:"🏫", alts:["the classroom"] },
+        { es:"el estuche", tr:"pencil case", emoji:"✏️", alts:["a pencil case","the pencil case"] },
+        { es:"el sacapuntas", tr:"sharpener", emoji:"✏️", alts:["a sharpener","the sharpener","pencil sharpener"] },
+      ],
+      "🧸 Juguetes": [
+        { es:"la pelota", tr:"ball", emoji:"⚽", alts:["a ball","the ball"] },
+        { es:"la bicicleta", tr:"bike", emoji:"🚲", alts:["a bike","the bike","bicycle"] },
+        { es:"el coche (juguete)", tr:"car", emoji:"🚗", alts:["a car","the car","toy car"] },
+        { es:"el ordenador", tr:"computer", emoji:"💻", alts:["a computer","the computer"] },
+        { es:"la muñeca", tr:"doll", emoji:"🧸", alts:["a doll","the doll"] },
+        { es:"el tambor", tr:"drum", emoji:"🥁", alts:["a drum","the drum"] },
+        { es:"el tren", tr:"train", emoji:"🚂", alts:["a train","the train"] },
+        { es:"el robot", tr:"robot", emoji:"🤖", alts:["a robot","the robot"] },
+        { es:"el juego", tr:"game", emoji:"🎮", alts:["a game","the game"] },
+        { es:"la cometa", tr:"kite", emoji:"🪁", alts:["a kite","the kite"] },
+        { es:"el rompecabezas", tr:"puzzle", emoji:"🧩", alts:["a puzzle","the puzzle"] },
+        { es:"el osito de peluche", tr:"teddy bear", emoji:"🧸", alts:["a teddy bear","the teddy bear","teddy"] },
+      ],
+      "👨‍👩‍👧‍👦 La familia": [
+        { es:"el padre", tr:"father", emoji:"👨", alts:["a father","the father","dad","daddy"] },
+        { es:"la madre", tr:"mother", emoji:"👩", alts:["a mother","the mother","mum","mummy","mom"] },
+        { es:"el hermano", tr:"brother", emoji:"👦", alts:["a brother","the brother"] },
+        { es:"la hermana", tr:"sister", emoji:"👧", alts:["a sister","the sister"] },
+        { es:"el abuelo", tr:"grandfather", emoji:"👴", alts:["a grandfather","the grandfather","grandpa","grandad"] },
+        { es:"la abuela", tr:"grandmother", emoji:"👵", alts:["a grandmother","the grandmother","grandma","granny"] },
+        { es:"el bebé", tr:"baby", emoji:"👶", alts:["a baby","the baby"] },
+        { es:"la familia", tr:"family", emoji:"👨‍👩‍👧‍👦", alts:["a family","the family","my family"] },
+        { es:"el tío", tr:"uncle", emoji:"👨", alts:["an uncle","the uncle","my uncle"] },
+        { es:"la tía", tr:"aunt", emoji:"👩", alts:["an aunt","the aunt","my aunt","auntie"] },
+        { es:"el primo", tr:"cousin", emoji:"🧒", alts:["a cousin","the cousin","my cousin"] },
+        { es:"los padres", tr:"parents", emoji:"👫", alts:["the parents","my parents"] },
+      ],
+      "😊 Adjetivos": [
+        { es:"bonito", tr:"beautiful", emoji:"🌸", alts:["pretty"] },
+        { es:"contento", tr:"happy", emoji:"😊", alts:["glad"] },
+        { es:"triste", tr:"sad", emoji:"😢", alts:[] },
+        { es:"viejo", tr:"old", emoji:"👴", alts:[] },
+        { es:"joven", tr:"young", emoji:"🧒", alts:[] },
+        { es:"grande", tr:"big", emoji:"🐘", alts:["large"] },
+        { es:"pequeño", tr:"small", emoji:"🐁", alts:["little","tiny"] },
+        { es:"largo", tr:"long", emoji:"📏", alts:[] },
+        { es:"corto", tr:"short", emoji:"📐", alts:[] },
+        { es:"limpio", tr:"clean", emoji:"✨", alts:[] },
+        { es:"sucio", tr:"dirty", emoji:"🧹", alts:[] },
+        { es:"bueno", tr:"good", emoji:"👍", alts:[] },
+        { es:"malo", tr:"bad", emoji:"👎", alts:[] },
+        { es:"rápido", tr:"fast", emoji:"🏃", alts:["quick"] },
+        { es:"lento", tr:"slow", emoji:"🐢", alts:[] },
+        { es:"nuevo", tr:"new", emoji:"🆕", alts:[] },
+        { es:"gordo", tr:"fat", emoji:"🐷", alts:[] },
+        { es:"delgado", tr:"thin", emoji:"🦒", alts:["slim"] },
+      ],
+      "🐾 Animales": [
+        { es:"el pájaro", tr:"bird", emoji:"🐦", alts:["a bird","the bird"] },
+        { es:"el gato", tr:"cat", emoji:"🐱", alts:["a cat","the cat"] },
+        { es:"el perro", tr:"dog", emoji:"🐶", alts:["a dog","the dog"] },
+        { es:"el pez", tr:"fish", emoji:"🐟", alts:["a fish","the fish"] },
+        { es:"el caballo", tr:"horse", emoji:"🐴", alts:["a horse","the horse"] },
+        { es:"el ratón", tr:"mouse", emoji:"🐭", alts:["a mouse","the mouse"] },
+        { es:"el oso", tr:"bear", emoji:"🐻", alts:["a bear","the bear"] },
+        { es:"el cocodrilo", tr:"crocodile", emoji:"🐊", alts:["a crocodile","the crocodile"] },
+        { es:"el elefante", tr:"elephant", emoji:"🐘", alts:["an elephant","the elephant"] },
+        { es:"la jirafa", tr:"giraffe", emoji:"🦒", alts:["a giraffe","the giraffe"] },
+        { es:"el hipopótamo", tr:"hippo", emoji:"🦛", alts:["a hippo","the hippo","hippopotamus"] },
+        { es:"el mono", tr:"monkey", emoji:"🐒", alts:["a monkey","the monkey"] },
+        { es:"la serpiente", tr:"snake", emoji:"🐍", alts:["a snake","the snake"] },
+        { es:"el tigre", tr:"tiger", emoji:"🐯", alts:["a tiger","the tiger"] },
+        { es:"el conejo", tr:"rabbit", emoji:"🐰", alts:["a rabbit","the rabbit","bunny"] },
+        { es:"la tortuga", tr:"turtle", emoji:"🐢", alts:["a turtle","the turtle","tortoise"] },
+        { es:"la rana", tr:"frog", emoji:"🐸", alts:["a frog","the frog"] },
+        { es:"el león", tr:"lion", emoji:"🦁", alts:["a lion","the lion"] },
+        { es:"el caracol", tr:"snail", emoji:"🐌", alts:["a snail","the snail"] },
+        { es:"la mariposa", tr:"butterfly", emoji:"🦋", alts:["a butterfly","the butterfly"] },
+      ],
+      "😀 Cara y cuerpo": [
+        { es:"las orejas", tr:"ears", emoji:"👂", alts:["the ears"] },
+        { es:"los ojos", tr:"eyes", emoji:"👀", alts:["the eyes"] },
+        { es:"la cara", tr:"face", emoji:"😊", alts:["a face","the face","my face"] },
+        { es:"el pelo", tr:"hair", emoji:"💇", alts:["the hair","my hair"] },
+        { es:"las rodillas", tr:"knees", emoji:"🦵", alts:["the knees"] },
+        { es:"la boca", tr:"mouth", emoji:"👄", alts:["a mouth","the mouth","my mouth"] },
+        { es:"la nariz", tr:"nose", emoji:"👃", alts:["a nose","the nose","my nose"] },
+        { es:"los hombros", tr:"shoulders", emoji:"💪", alts:["the shoulders"] },
+        { es:"los dedos del pie", tr:"toes", emoji:"🦶", alts:["the toes"] },
+        { es:"los dientes", tr:"teeth", emoji:"🦷", alts:["the teeth","my teeth","tooth"] },
+        { es:"la cabeza", tr:"head", emoji:"🗣️", alts:["a head","the head","my head"] },
+        { es:"la mano", tr:"hand", emoji:"✋", alts:["a hand","the hand","my hand"] },
+        { es:"el pie", tr:"foot", emoji:"🦶", alts:["a foot","the foot","my foot","feet"] },
+        { es:"el brazo", tr:"arm", emoji:"💪", alts:["an arm","the arm","my arm"] },
+        { es:"la pierna", tr:"leg", emoji:"🦵", alts:["a leg","the leg","my leg"] },
+        { es:"la cola", tr:"tail", emoji:"🐾", alts:["a tail","the tail"] },
+        { es:"la barriga", tr:"tummy", emoji:"😋", alts:["a tummy","the tummy","belly","stomach"] },
+        { es:"el dedo", tr:"finger", emoji:"👆", alts:["a finger","the finger","my finger"] },
+        { es:"la espalda", tr:"back", emoji:"🔙", alts:["a back","the back","my back"] },
+        { es:"el cuello", tr:"neck", emoji:"🦒", alts:["a neck","the neck","my neck"] },
+      ],
+      "👕 La ropa": [
+        { es:"la gorra", tr:"cap", emoji:"🧢", alts:["a cap","the cap"] },
+        { es:"la chaqueta", tr:"jacket", emoji:"🧥", alts:["a jacket","the jacket"] },
+        { es:"los zapatos", tr:"shoes", emoji:"👟", alts:["the shoes"] },
+        { es:"la falda", tr:"skirt", emoji:"👗", alts:["a skirt","the skirt"] },
+        { es:"los calcetines", tr:"socks", emoji:"🧦", alts:["the socks"] },
+        { es:"los pantalones", tr:"trousers", emoji:"👖", alts:["the trousers","pants"] },
+        { es:"la camiseta", tr:"T-shirt", emoji:"👕", alts:["a T-shirt","the T-shirt","t-shirt","tee shirt"] },
+        { es:"los pantalones cortos", tr:"shorts", emoji:"🩳", alts:["the shorts"] },
+        { es:"el vestido", tr:"dress", emoji:"👗", alts:["a dress","the dress"] },
+        { es:"el abrigo", tr:"coat", emoji:"🧥", alts:["a coat","the coat"] },
+        { es:"las botas", tr:"boots", emoji:"👢", alts:["the boots"] },
+        { es:"el sombrero", tr:"hat", emoji:"🎩", alts:["a hat","the hat"] },
+        { es:"las gafas de sol", tr:"sunglasses", emoji:"🕶️", alts:["the sunglasses"] },
+        { es:"el jersey", tr:"jumper", emoji:"🧶", alts:["a jumper","the jumper","sweater"] },
+      ],
+      "⚽ Deportes": [
+        { es:"jugar al fútbol", tr:"play football", emoji:"⚽", alts:["play soccer"] },
+        { es:"jugar al baloncesto", tr:"play basketball", emoji:"🏀", alts:[] },
+        { es:"jugar al tenis", tr:"play tennis", emoji:"🎾", alts:[] },
+        { es:"tocar la guitarra", tr:"play the guitar", emoji:"🎸", alts:[] },
+        { es:"tocar el piano", tr:"play the piano", emoji:"🎹", alts:[] },
+        { es:"montar en bicicleta", tr:"ride a bike", emoji:"🚲", alts:["ride a bicycle"] },
+        { es:"nadar", tr:"swim", emoji:"🏊", alts:["swimming"] },
+        { es:"cantar", tr:"sing", emoji:"🎤", alts:["singing"] },
+        { es:"bailar", tr:"dance", emoji:"💃", alts:["dancing"] },
+        { es:"dibujar", tr:"draw", emoji:"🎨", alts:["drawing"] },
+        { es:"leer", tr:"read", emoji:"📖", alts:["reading"] },
+        { es:"correr", tr:"run", emoji:"🏃", alts:["running"] },
+        { es:"saltar", tr:"jump", emoji:"🦘", alts:["jumping"] },
+        { es:"pintar", tr:"paint", emoji:"🖌️", alts:["painting"] },
+      ],
+      "🚗 Transporte": [
+        { es:"el barco", tr:"boat", emoji:"⛵", alts:["a boat","the boat"] },
+        { es:"el autobús", tr:"bus", emoji:"🚌", alts:["a bus","the bus"] },
+        { es:"el helicóptero", tr:"helicopter", emoji:"🚁", alts:["a helicopter","the helicopter"] },
+        { es:"el camión", tr:"lorry", emoji:"🚛", alts:["a lorry","the lorry","truck"] },
+        { es:"la moto", tr:"motorbike", emoji:"🏍️", alts:["a motorbike","the motorbike","motorcycle"] },
+        { es:"el avión", tr:"plane", emoji:"✈️", alts:["a plane","the plane","airplane","aeroplane"] },
+        { es:"el coche", tr:"car", emoji:"🚗", alts:["a car","the car"] },
+        { es:"el tren", tr:"train", emoji:"🚂", alts:["a train","the train"] },
+        { es:"la bicicleta", tr:"bicycle", emoji:"🚲", alts:["a bicycle","the bicycle","bike"] },
+        { es:"el patinete", tr:"scooter", emoji:"🛴", alts:["a scooter","the scooter"] },
+        { es:"el taxi", tr:"taxi", emoji:"🚕", alts:["a taxi","the taxi","cab"] },
+        { es:"el barco grande", tr:"ship", emoji:"🚢", alts:["a ship","the ship"] },
+      ],
+      "🏠 La casa": [
+        { es:"el baño", tr:"bathroom", emoji:"🚿", alts:["a bathroom","the bathroom"] },
+        { es:"la habitación", tr:"bedroom", emoji:"🛏️", alts:["a bedroom","the bedroom","my bedroom"] },
+        { es:"el comedor", tr:"dining room", emoji:"🍽️", alts:["a dining room","the dining room"] },
+        { es:"el salón", tr:"living room", emoji:"🛋️", alts:["a living room","the living room","lounge"] },
+        { es:"la cocina", tr:"kitchen", emoji:"🍳", alts:["a kitchen","the kitchen"] },
+        { es:"el pasillo", tr:"hall", emoji:"🚪", alts:["a hall","the hall","hallway"] },
+        { es:"el jardín", tr:"garden", emoji:"🌳", alts:["a garden","the garden","my garden"] },
+        { es:"el garaje", tr:"garage", emoji:"🚗", alts:["a garage","the garage"] },
+        { es:"la puerta", tr:"door", emoji:"🚪", alts:["a door","the door"] },
+        { es:"la ventana", tr:"window", emoji:"🪟", alts:["a window","the window"] },
+        { es:"las escaleras", tr:"stairs", emoji:"🪜", alts:["the stairs","staircase"] },
+        { es:"el tejado", tr:"roof", emoji:"🏠", alts:["a roof","the roof"] },
+      ],
+      "🍎 Comida": [
+        { es:"la manzana", tr:"apple", emoji:"🍎", alts:["an apple","the apple","apples"] },
+        { es:"el plátano", tr:"banana", emoji:"🍌", alts:["a banana","the banana","bananas"] },
+        { es:"la hamburguesa", tr:"burger", emoji:"🍔", alts:["a burger","the burger","hamburger"] },
+        { es:"la tarta", tr:"cake", emoji:"🎂", alts:["a cake","the cake"] },
+        { es:"el chocolate", tr:"chocolate", emoji:"🍫", alts:["the chocolate"] },
+        { es:"el pescado", tr:"fish", emoji:"🐟", alts:["the fish"] },
+        { es:"el helado", tr:"ice cream", emoji:"🍦", alts:["an ice cream","the ice cream"] },
+        { es:"el pan", tr:"bread", emoji:"🍞", alts:["the bread"] },
+        { es:"el queso", tr:"cheese", emoji:"🧀", alts:["the cheese"] },
+        { es:"la leche", tr:"milk", emoji:"🥛", alts:["the milk"] },
+        { es:"el agua", tr:"water", emoji:"💧", alts:["the water"] },
+        { es:"el zumo", tr:"juice", emoji:"🧃", alts:["the juice","fruit juice"] },
+        { es:"la pizza", tr:"pizza", emoji:"🍕", alts:["a pizza","the pizza"] },
+        { es:"las galletas", tr:"biscuits", emoji:"🍪", alts:["the biscuits","cookies"] },
+        { es:"la naranja", tr:"orange", emoji:"🍊", alts:["an orange","the orange","oranges"] },
+        { es:"el sándwich", tr:"sandwich", emoji:"🥪", alts:["a sandwich","the sandwich"] },
+      ],
+    },
+  },
+};
+
+// ════════════════════════════════════════════════════════
+//  V E R B O S
+// ════════════════════════════════════════════════════════
+const verbs = {
+
+  manuela: {
+    frances: [
+      {
+        verb: "être", display: "Être", emoji: "🔵", es: "ser / estar",
+        conjugation: {
+          "je":   ["suis"],
+          "tu":   ["es"],
+          "il/elle": ["est"],
+          "nous": ["sommes"],
+          "vous": ["êtes","etes"],
+          "ils/elles": ["sont"],
+        }
+      },
+      {
+        verb: "avoir", display: "Avoir", emoji: "🟢", es: "tener",
+        conjugation: {
+          "je":   ["ai"],
+          "tu":   ["as"],
+          "il/elle": ["a"],
+          "nous": ["avons"],
+          "vous": ["avez"],
+          "ils/elles": ["ont"],
+        }
+      },
+      {
+        verb: "s'appeler", display: "S'appeler", emoji: "👋", es: "llamarse",
+        conjugation: {
+          "je":   ["m'appelle"],
+          "tu":   ["t'appelles"],
+          "il/elle": ["s'appelle"],
+          "nous": ["nous appelons"],
+          "vous": ["vous appelez"],
+          "ils/elles": ["s'appellent"],
+        }
+      },
+      {
+        verb: "aimer", display: "Aimer", emoji: "❤️", es: "gustar / querer",
+        conjugation: {
+          "je":   ["aime"],
+          "tu":   ["aimes"],
+          "il/elle": ["aime"],
+          "nous": ["aimons"],
+          "vous": ["aimez"],
+          "ils/elles": ["aiment"],
+        }
+      },
+      {
+        verb: "adorer", display: "Adorer", emoji: "😍", es: "adorar / encantar",
+        conjugation: {
+          "je":   ["adore"],
+          "tu":   ["adores"],
+          "il/elle": ["adore"],
+          "nous": ["adorons"],
+          "vous": ["adorez"],
+          "ils/elles": ["adorent"],
+        }
+      },
+      {
+        verb: "acheter", display: "Acheter", emoji: "🛒", es: "comprar",
+        conjugation: {
+          "je":   ["achète","achete"],
+          "tu":   ["achètes","achetes"],
+          "il/elle": ["achète","achete"],
+          "nous": ["achetons"],
+          "vous": ["achetez"],
+          "ils/elles": ["achètent","achetent"],
+        }
+      },
+      {
+        verb: "manger", display: "Manger", emoji: "🍽️", es: "comer",
+        conjugation: {
+          "je":   ["mange"],
+          "tu":   ["manges"],
+          "il/elle": ["mange"],
+          "nous": ["mangeons"],
+          "vous": ["mangez"],
+          "ils/elles": ["mangent"],
+        }
+      },
+      {
+        verb: "préférer", display: "Préférer", emoji: "⭐", es: "preferir",
+        conjugation: {
+          "je":   ["préfère","prefere"],
+          "tu":   ["préfères","preferes"],
+          "il/elle": ["préfère","prefere"],
+          "nous": ["préférons","preferons"],
+          "vous": ["préférez","preferez"],
+          "ils/elles": ["préfèrent","preferent"],
+        }
+      },
+      {
+        verb: "détester", display: "Détester", emoji: "👎", es: "odiar / detestar",
+        conjugation: {
+          "je":   ["déteste","deteste"],
+          "tu":   ["détestes","detestes"],
+          "il/elle": ["déteste","deteste"],
+          "nous": ["détestons","detestons"],
+          "vous": ["détestez","detestez"],
+          "ils/elles": ["détestent","detestent"],
+        }
+      },
+      {
+        verb: "boire", display: "Boire", emoji: "🥤", es: "beber",
+        conjugation: {
+          "je":   ["bois"],
+          "tu":   ["bois"],
+          "il/elle": ["boit"],
+          "nous": ["buvons"],
+          "vous": ["buvez"],
+          "ils/elles": ["boivent"],
+        }
+      },
+    ],
+    ingles: [
+      { verb:"go", es:"ir", emoji:"🚶", inf:["go","to go"], past:["went"], pp:["gone"], pastNote:"" },
+      { verb:"come", es:"venir", emoji:"👋", inf:["come","to come"], past:["came"], pp:["come"], pastNote:"" },
+      { verb:"have", es:"tener", emoji:"🤲", inf:["have","to have"], past:["had"], pp:["had"], pastNote:"" },
+      { verb:"catch", es:"coger / atrapar", emoji:"🥎", inf:["catch","to catch"], past:["caught"], pp:["caught"], pastNote:"" },
+      { verb:"wake up", es:"despertarse", emoji:"⏰", inf:["wake up","to wake up"], past:["woke up"], pp:["woken up"], pastNote:"" },
+      { verb:"get up", es:"levantarse", emoji:"🛏️", inf:["get up","to get up"], past:["got up"], pp:["got up","gotten up"], pastNote:"" },
+      { verb:"eat", es:"comer", emoji:"🍽️", inf:["eat","to eat"], past:["ate"], pp:["eaten"], pastNote:"" },
+      { verb:"drink", es:"beber", emoji:"🥤", inf:["drink","to drink"], past:["drank"], pp:["drunk"], pastNote:"" },
+      { verb:"put", es:"poner", emoji:"📦", inf:["put","to put"], past:["put"], pp:["put"], pastNote:"" },
+      { verb:"take", es:"coger / llevar", emoji:"🫳", inf:["take","to take"], past:["took"], pp:["taken"], pastNote:"" },
+      { verb:"be", es:"ser / estar", emoji:"🔵", inf:["be","to be"], past:["was","were"], pp:["been"], pastNote:"⚠️ 2 formas: was (I/he/she/it) y were (you/we/they)" },
+      { verb:"can", es:"poder", emoji:"💪", inf:["can"], past:["could"], pp:["been able to"], pastNote:"" },
+      { verb:"do", es:"hacer", emoji:"✅", inf:["do","to do"], past:["did"], pp:["done"], pastNote:"" },
+      { verb:"forget", es:"olvidar", emoji:"🤔", inf:["forget","to forget"], past:["forgot"], pp:["forgotten"], pastNote:"" },
+      { verb:"run", es:"correr", emoji:"🏃", inf:["run","to run"], past:["ran"], pp:["run"], pastNote:"" },
+      { verb:"see", es:"ver", emoji:"👀", inf:["see","to see"], past:["saw"], pp:["seen"], pastNote:"" },
+      { verb:"think", es:"pensar", emoji:"🧠", inf:["think","to think"], past:["thought"], pp:["thought"], pastNote:"" },
+      { verb:"know", es:"saber / conocer", emoji:"💡", inf:["know","to know"], past:["knew"], pp:["known"], pastNote:"" },
+      { verb:"win", es:"ganar", emoji:"🏆", inf:["win","to win"], past:["won"], pp:["won"], pastNote:"" },
+      { verb:"write", es:"escribir", emoji:"✍️", inf:["write","to write"], past:["wrote"], pp:["written"], pastNote:"" },
+      { verb:"buy", es:"comprar", emoji:"🛒", inf:["buy","to buy"], past:["bought"], pp:["bought"], pastNote:"" },
+      { verb:"say", es:"decir", emoji:"💬", inf:["say","to say"], past:["said"], pp:["said"], pastNote:"" },
+      { verb:"feel", es:"sentir", emoji:"❤️", inf:["feel","to feel"], past:["felt"], pp:["felt"], pastNote:"" },
+      { verb:"grow", es:"crecer", emoji:"🌱", inf:["grow","to grow"], past:["grew"], pp:["grown"], pastNote:"" },
+      { verb:"swim", es:"nadar", emoji:"🏊", inf:["swim","to swim"], past:["swam"], pp:["swum"], pastNote:"" },
+      { verb:"sing", es:"cantar", emoji:"🎤", inf:["sing","to sing"], past:["sang"], pp:["sung"], pastNote:"" },
+      { verb:"read", es:"leer", emoji:"📖", inf:["read","to read"], past:["read"], pp:["read"], pastNote:"" },
+      { verb:"sell", es:"vender", emoji:"🏷️", inf:["sell","to sell"], past:["sold"], pp:["sold"], pastNote:"" },
+      { verb:"cut", es:"cortar", emoji:"✂️", inf:["cut","to cut"], past:["cut"], pp:["cut"], pastNote:"" },
+      { verb:"lose", es:"perder", emoji:"😞", inf:["lose","to lose"], past:["lost"], pp:["lost"], pastNote:"" },
+      { verb:"speak", es:"hablar", emoji:"🗣️", inf:["speak","to speak"], past:["spoke"], pp:["spoken"], pastNote:"" },
+      { verb:"begin", es:"empezar", emoji:"▶️", inf:["begin","to begin"], past:["began"], pp:["begun"], pastNote:"" },
+      { verb:"choose", es:"elegir", emoji:"👆", inf:["choose","to choose"], past:["chose"], pp:["chosen"], pastNote:"" },
+      { verb:"understand", es:"entender", emoji:"🤓", inf:["understand","to understand"], past:["understood"], pp:["understood"], pastNote:"" },
+      { verb:"teach", es:"enseñar", emoji:"👩‍🏫", inf:["teach","to teach"], past:["taught"], pp:["taught"], pastNote:"" },
+      { verb:"wear", es:"llevar (ropa)", emoji:"👕", inf:["wear","to wear"], past:["wore"], pp:["worn"], pastNote:"" },
+      { verb:"drive", es:"conducir", emoji:"🚗", inf:["drive","to drive"], past:["drove"], pp:["driven"], pastNote:"" },
+      { verb:"smell", es:"oler", emoji:"👃", inf:["smell","to smell"], past:["smelt","smelled"], pp:["smelt","smelled"], pastNote:"" },
+      { verb:"hide", es:"esconderse", emoji:"🙈", inf:["hide","to hide"], past:["hid"], pp:["hidden"], pastNote:"" },
+      { verb:"fall", es:"caer", emoji:"⬇️", inf:["fall","to fall"], past:["fell"], pp:["fallen"], pastNote:"" },
+      { verb:"fly", es:"volar", emoji:"✈️", inf:["fly","to fly"], past:["flew"], pp:["flown"], pastNote:"" },
+      { verb:"keep", es:"guardar / mantener", emoji:"📌", inf:["keep","to keep"], past:["kept"], pp:["kept"], pastNote:"" },
+      { verb:"sleep", es:"dormir", emoji:"😴", inf:["sleep","to sleep"], past:["slept"], pp:["slept"], pastNote:"" },
+      { verb:"meet", es:"encontrar / conocer", emoji:"🤝", inf:["meet","to meet"], past:["met"], pp:["met"], pastNote:"" },
+      { verb:"spell", es:"deletrear", emoji:"🔤", inf:["spell","to spell"], past:["spelt","spelled"], pp:["spelt","spelled"], pastNote:"" },
+      { verb:"find", es:"encontrar", emoji:"🔍", inf:["find","to find"], past:["found"], pp:["found"], pastNote:"" },
+      { verb:"dry", es:"secar", emoji:"☀️", inf:["dry","to dry"], past:["dried"], pp:["dried"], pastNote:"" },
+      { verb:"send", es:"enviar", emoji:"📨", inf:["send","to send"], past:["sent"], pp:["sent"], pastNote:"" },
+      { verb:"make", es:"hacer / fabricar", emoji:"🔨", inf:["make","to make"], past:["made"], pp:["made"], pastNote:"" },
+    ],
+  },
+
+  matilde: {
+    ingles: [],
+  },
+};
+
+// ════════════════════════════════════════════════════════
+//  C O N F I G   I D I O M A S
+// ════════════════════════════════════════════════════════
+const langConfig = {
+  frances: { label:"Francés", flag:"🇫🇷", speechLang:"fr-FR", chars:["é","è","ê","à","â","ù","û","î","ô","ç","œ","'"] },
+  ingles:  { label:"Inglés",  flag:"🇬🇧", speechLang:"en-GB", chars:[] },
+};
+
+// ════════════════════════════════════════════════════════
+//  E S T A D O
+// ════════════════════════════════════════════════════════
+let state = {
+  student: null,
+  avatar:  null,
+  lang:    null,
+  activity: null,  // 'vocab' | 'verbs'
+  topic:   null,
+  mode:    null,
+  num:     0,
+  verb:    null,   // selected verb object
+  irregNum: 0,    // number of irregular verbs to practice
+};
+
+let deck=[], repassQueue=[], current=0;
+let scoreYes=0, scoreNo=0, checked=false;
+let isRepass=false, currentRepass=null;
+let currentWord='', currentLang='fr-FR';
+
+// ════════════════════════════════════════════════════════
+//  P A N T A L L A S
+// ════════════════════════════════════════════════════════
+function goScreen(id) {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════
+//  S E L E C C I Ó N   J U G A D O R A
+// ════════════════════════════════════════════════════════
+function selectPlayer(student) {
+  state.student = student;
+  state.avatar = null;
+  state.lang = null; state.activity = null; state.topic = null; state.mode = null; state.num = 0; state.verb = null;
+
+  document.getElementById('btnManuela').className = 'player-btn' + (student==='manuela' ? ' sel-manuela' : '');
+  document.getElementById('btnMatilde').className = 'player-btn' + (student==='matilde' ? ' sel-matilde' : '');
+
+  const title = document.getElementById('avatarTitle');
+  title.textContent = student === 'manuela' ? '¡Hola Manuela! 🎀' : '¡Hola Matilde! ⭐';
+  title.className = 'avatar-header ' + student;
+
+  buildAvatarGrid(student);
+  document.getElementById('btnConfirmAvatar').disabled = true;
+  goScreen('screenAvatar');
+}
+
+function buildAvatarGrid(student) {
+  const grid = document.getElementById('avatarGrid');
+  grid.innerHTML = '';
+  avatars.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'avatar-btn';
+    btn.textContent = emoji;
+    btn.onclick = () => pickAvatar(emoji, btn, student);
+    grid.appendChild(btn);
+  });
+}
+
+function pickAvatar(emoji, btn, student) {
+  state.avatar = emoji;
+  document.querySelectorAll('.avatar-btn').forEach(b => { b.className = 'avatar-btn'; });
+  btn.classList.add(student === 'manuela' ? 'av-sel-manuela' : 'av-sel-matilde');
+  document.getElementById('btnConfirmAvatar').disabled = false;
+}
+
+function confirmAvatar() {
+  if (!state.avatar) return;
+  if (state.student === 'manuela') document.getElementById('manuelaEmoji').textContent = state.avatar;
+  else document.getElementById('matildeEmoji').textContent = state.avatar;
+
+  const badge = document.getElementById('whoBadge');
+  badge.className = 'who-badge ' + state.student;
+  document.getElementById('whoBadgeAvatar').textContent = state.avatar;
+  document.getElementById('whoBadgeName').textContent = state.student === 'manuela' ? 'Manuela' : 'Matilde';
+
+  // Update game badges
+  document.getElementById('gameAvatar').textContent = state.avatar;
+  document.getElementById('gamePlayerName').textContent = state.student === 'manuela' ? 'Manuela' : 'Matilde';
+  document.getElementById('gamePlayerBadge').className = 'game-player-badge ' + state.student;
+  document.getElementById('verbAvatar').textContent = state.avatar;
+  document.getElementById('verbPlayerName').textContent = state.student === 'manuela' ? 'Manuela' : 'Matilde';
+  document.getElementById('verbPlayerBadge').className = 'game-player-badge ' + state.student;
+  document.getElementById('irregAvatar').textContent = state.avatar;
+  document.getElementById('irregPlayerName').textContent = state.student === 'manuela' ? 'Manuela' : 'Matilde';
+  document.getElementById('irregPlayerBadge').className = 'game-player-badge ' + state.student;
+
+  buildSetup();
+  goScreen('screenSetup');
+}
+
+// ════════════════════════════════════════════════════════
+//  S E T U P
+// ════════════════════════════════════════════════════════
+function buildSetup() {
+  state.lang = null; state.activity = null; state.topic = null; state.mode = null; state.num = 0; state.verb = null; state.irregNum = 0;
+  document.getElementById('cardActivity').style.display = 'none';
+  document.getElementById('cardTopic').style.display = 'none';
+  document.getElementById('cardMode').style.display  = 'none';
+  document.getElementById('cardNum').style.display   = 'none';
+  document.getElementById('cardVerb').style.display  = 'none';
+  document.getElementById('cardIrregNum').style.display = 'none';
+  document.getElementById('btnStart').disabled = true;
+  renderLangOptions();
+}
+
+function pick(type, value, btn) {
+  state[type] = value;
+
+  const colorMap = { lang:'sel-blue', activity:'sel-purple', topic:'sel-blue', mode:'sel-green', num:'sel-orange' };
+  btn.parentElement.querySelectorAll('.opt-btn, .verb-select-btn').forEach(b => {
+    b.className = b.className.replace(/\bsel-\w+/g, '').trim();
+    // Restore base class
+    if (b.classList.contains('opt-btn') || b.dataset.isOpt) { /* already has class */ }
+  });
+  // Simpler: clear siblings
+  btn.parentElement.querySelectorAll('.opt-btn').forEach(b => b.className = 'opt-btn');
+  btn.parentElement.querySelectorAll('.verb-select-btn').forEach(b => b.className = 'verb-select-btn');
+  if (btn.classList.contains('verb-select-btn')) btn.classList.add('sel-purple');
+  else btn.classList.add(colorMap[type]);
+
+  if (type === 'lang') {
+    state.activity = null; state.topic = null; state.mode = null; state.num = 0; state.verb = null;
+    renderActivityOptions();
+    document.getElementById('cardTopic').style.display = 'none';
+    document.getElementById('cardMode').style.display  = 'none';
+    document.getElementById('cardNum').style.display   = 'none';
+    document.getElementById('cardVerb').style.display  = 'none';
+  }
+  if (type === 'activity') {
+    state.topic = null; state.mode = null; state.num = 0; state.verb = null; state.irregNum = 0;
+    if (value === 'vocab') {
+      renderTopicOptions();
+      document.getElementById('cardVerb').style.display = 'none';
+      document.getElementById('cardIrregNum').style.display = 'none';
+    } else if (value === 'verbs') {
+      renderVerbOptions();
+      document.getElementById('cardTopic').style.display = 'none';
+      document.getElementById('cardMode').style.display  = 'none';
+      document.getElementById('cardNum').style.display   = 'none';
+      document.getElementById('cardIrregNum').style.display = 'none';
+    } else if (value === 'irregulars') {
+      renderIrregNumOptions();
+      document.getElementById('cardTopic').style.display = 'none';
+      document.getElementById('cardMode').style.display  = 'none';
+      document.getElementById('cardNum').style.display   = 'none';
+      document.getElementById('cardVerb').style.display  = 'none';
+    }
+  }
+  if (type === 'topic') {
+    state.mode = null; state.num = 0;
+    document.getElementById('cardMode').style.display = 'block';
+    document.getElementById('cardNum').style.display  = 'none';
+  }
+  if (type === 'mode') {
+    state.num = 0;
+    renderNumOptions();
+  }
+  checkStartReady();
+}
+
+function renderLangOptions() {
+  const studentVocab = vocab[state.student] || {};
+  const studentVerbs = verbs[state.student] || {};
+  // Merge languages from both vocab and verbs
+  const allLangs = new Set([...Object.keys(studentVocab), ...Object.keys(studentVerbs)]);
+  const langs = [...allLangs].filter(l => {
+    const hasVocab = studentVocab[l] && Object.keys(studentVocab[l]).length > 0;
+    const hasVerbs = studentVerbs[l] && studentVerbs[l].length > 0;
+    return hasVocab || hasVerbs;
+  });
+
+  const container = document.getElementById('langOptions');
+  container.innerHTML = '';
+  if (langs.length === 0) {
+    container.innerHTML = '<p style="color:#CCC;font-size:0.85rem">Próximamente 🚀</p>';
+    return;
+  }
+  langs.forEach(lang => {
+    const cfg = langConfig[lang] || { label:lang, flag:'🌍' };
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span class="lang-flag">${cfg.flag}</span>${cfg.label}`;
+    btn.onclick = () => pick('lang', lang, btn);
+    container.appendChild(btn);
+  });
+}
+
+function renderActivityOptions() {
+  const container = document.getElementById('activityOptions');
+  container.innerHTML = '';
+
+  const studentVocab = vocab[state.student]?.[state.lang] || {};
+  const studentVerbs = verbs[state.student]?.[state.lang] || [];
+  const hasVocab = Object.keys(studentVocab).length > 0;
+  const hasVerbs = studentVerbs.length > 0 && studentVerbs[0]?.conjugation; // French-style conjugation
+  const hasIrregulars = studentVerbs.length > 0 && studentVerbs[0]?.inf; // English irregular verbs
+
+  if (hasVocab) {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.style.minWidth = '120px';
+    btn.innerHTML = '📖<br>Vocabulario';
+    btn.onclick = () => pick('activity', 'vocab', btn);
+    container.appendChild(btn);
+  }
+  if (hasVerbs) {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.style.minWidth = '120px';
+    btn.innerHTML = '📝<br>Verbos';
+    btn.onclick = () => pick('activity', 'verbs', btn);
+    container.appendChild(btn);
+  }
+  if (hasIrregulars) {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.style.minWidth = '120px';
+    btn.innerHTML = '🔀<br>Verbos<br><small style="font-size:0.68rem;font-weight:600;color:inherit;opacity:0.7">irregulares</small>';
+    btn.onclick = () => pick('activity', 'irregulars', btn);
+    container.appendChild(btn);
+  }
+  if (!hasVocab && !hasVerbs && !hasIrregulars) {
+    container.innerHTML = '<p style="color:#CCC;font-size:0.85rem">Próximamente 🚀</p>';
+  }
+  document.getElementById('cardActivity').style.display = 'block';
+}
+
+function renderTopicOptions() {
+  const topics = Object.keys((vocab[state.student]?.[state.lang]) || {});
+  const container = document.getElementById('topicOptions');
+  container.innerHTML = '';
+  if (topics.length === 0) {
+    container.innerHTML = '<p style="color:#CCC;font-size:0.85rem">Próximamente 🚀</p>';
+    document.getElementById('cardTopic').style.display = 'block';
+    return;
+  }
+  topics.forEach(topic => {
+    const words = vocab[state.student][state.lang][topic];
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.style.minWidth = '130px';
+    btn.innerHTML = topic + `<br><small style="font-size:0.68rem;font-weight:600;color:inherit;opacity:0.7">${words.length} palabras</small>`;
+    btn.onclick = () => pick('topic', topic, btn);
+    container.appendChild(btn);
+  });
+  document.getElementById('cardTopic').style.display = 'block';
+}
+
+function renderVerbOptions() {
+  const verbList = verbs[state.student]?.[state.lang] || [];
+  const container = document.getElementById('verbOptions');
+  container.innerHTML = '';
+  verbList.forEach(v => {
+    const btn = document.createElement('button');
+    btn.className = 'verb-select-btn';
+    btn.innerHTML = `${v.emoji}<br><strong>${v.display}</strong><br><small style="font-size:0.7rem;color:inherit;opacity:0.7">${v.es}</small>`;
+    btn.onclick = () => {
+      state.verb = v;
+      container.querySelectorAll('.verb-select-btn').forEach(b => b.className = 'verb-select-btn');
+      btn.classList.add('sel-purple');
+      checkStartReady();
+    };
+    container.appendChild(btn);
+  });
+  document.getElementById('cardVerb').style.display = 'block';
+}
+
+function renderNumOptions() {
+  const totalWords = (vocab[state.student]?.[state.lang]?.[state.topic] || []).length;
+  const base = [5,10,15,20,30];
+  const options = base.filter(n => n < totalWords);
+  options.push(totalWords);
+
+  const container = document.getElementById('numOptions');
+  container.innerHTML = '';
+  options.forEach(n => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.style.minWidth = '60px';
+    btn.innerHTML = n === totalWords
+      ? `💯<br><small style="font-size:0.72rem">Todas (${n})</small>`
+      : n;
+    btn.onclick = () => pick('num', n, btn);
+    container.appendChild(btn);
+  });
+  document.getElementById('cardNum').style.display = 'block';
+}
+
+function checkStartReady() {
+  let ready = false;
+  if (state.activity === 'vocab') {
+    ready = state.lang && state.topic && state.mode && state.num > 0;
+  } else if (state.activity === 'verbs') {
+    ready = state.lang && state.verb;
+  } else if (state.activity === 'irregulars') {
+    ready = state.lang && state.irregNum > 0;
+  }
+  document.getElementById('btnStart').disabled = !ready;
+}
+
+// ════════════════════════════════════════════════════════
+//  J U E G O  (VOCABULARIO)
+// ════════════════════════════════════════════════════════
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+function normalize(str) { return str.trim().toLowerCase().replace(/[''ʼ]/g,"'").replace(/\s+/g,' '); }
+
+function startGame() {
+  if (state.activity === 'verbs') { startVerbGame(); return; }
+  if (state.activity === 'irregulars') { startIrregularGame(); return; }
+
+  const allWords = vocab[state.student][state.lang][state.topic];
+  deck = shuffle(allWords).slice(0, state.num);
+  repassQueue=[]; current=0; scoreYes=0; scoreNo=0;
+  checked=false; isRepass=false; currentRepass=null;
+  currentLang = langConfig[state.lang]?.speechLang || 'fr-FR';
+
+  const chars = langConfig[state.lang]?.chars || [];
+  const sc = document.getElementById('specialChars');
+  sc.innerHTML = '';
+  chars.forEach(ch => {
+    const b = document.createElement('button');
+    b.className = 'char-btn'; b.textContent = ch;
+    b.onclick = () => insertChar(ch);
+    sc.appendChild(b);
+  });
+
+  goScreen('screenGame');
+  updateScores();
+  showCard();
+}
+
+function showCard() {
+  checked=false; isRepass=false; currentRepass=null;
+
+  const input = document.getElementById('answerInput');
+  input.value=''; input.className='answer-input'; input.disabled=false;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('correctAnswer').textContent='';
+  document.getElementById('gameCard').className='game-card';
+  document.getElementById('btnCheck').style.display = 'none';
+  document.getElementById('btnNext').style.display='none';
+  document.getElementById('repassBadge').style.display='none';
+  document.getElementById('btnAudio').style.display='none';
+  document.getElementById('btnListenRepeat').style.display='none';
+  document.getElementById('writeArea').style.display  = 'none';
+  document.getElementById('choiceArea').style.display = 'none';
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+  if (current >= deck.length) {
+    if (repassQueue.length > 0) { startRepass(); return; }
+    else { showEnd(); return; }
+  }
+
+  const item = deck[current];
+  document.getElementById('cardEmoji').textContent = item.emoji;
+  document.getElementById('cardWord').textContent = item.es;
+  const curMode = state.mode === 'mix' ? ['write','choice','listen'][Math.floor(Math.random()*3)] : state.mode;
+  state._curMode = curMode; // store for checking
+
+  if (curMode === 'listen') {
+    document.getElementById('cardEmoji').textContent = '🔊';
+    document.getElementById('cardWord').textContent = '¿Qué palabra es?';
+    document.getElementById('cardHint').textContent = 'Escucha y elige la respuesta correcta';
+  } else {
+    document.getElementById('cardHint').textContent = curMode==='write' ? 'Escribe la traducción' : 'Elige la respuesta correcta';
+  }
+
+  const pct = (current / deck.length) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = (current+1) + ' / ' + deck.length;
+
+  document.getElementById('writeArea').style.display  = curMode==='write'  ? 'block' : 'none';
+  document.getElementById('choiceArea').style.display = (curMode==='choice' || curMode==='listen') ? 'block' : 'none';
+  document.getElementById('btnCheck').style.display = curMode==='write' ? 'block' : 'none';
+
+  if (curMode === 'choice' || curMode === 'listen') renderChoices(item);
+  if (curMode === 'listen') {
+    currentWord = item.tr;
+    document.getElementById('btnListenRepeat').style.display = 'inline-flex';
+    setTimeout(() => speakWord(), 400);
+  }
+  if (curMode === 'write') input.focus();
+}
+
+function startRepass() {
+  isRepass=true; currentRepass=repassQueue[0];
+  const item = currentRepass.item;
+  document.getElementById('repassBadge').style.display='inline-block';
+  document.getElementById('cardEmoji').textContent=item.emoji;
+  document.getElementById('cardWord').textContent=item.es;
+  document.getElementById('progressBar').style.width='100%';
+  const total = repassQueue.reduce((a,r)=>a+r.timesLeft,0);
+  document.getElementById('progressLabel').textContent='📚 Repaso: '+total+' vez'+(total!==1?'es':'')+' más';
+  const curMode = state.mode === 'mix' ? ['write','choice','listen'][Math.floor(Math.random()*3)] : state.mode;
+  state._curMode = curMode;
+
+  if (curMode === 'listen') {
+    document.getElementById('cardEmoji').textContent = '🔊';
+    document.getElementById('cardWord').textContent = '¿Qué palabra es?';
+    document.getElementById('cardHint').textContent = 'Escucha y elige la respuesta correcta';
+  } else {
+    document.getElementById('cardHint').textContent = curMode==='write' ? 'Escribe la traducción' : 'Elige la respuesta correcta';
+  }
+  document.getElementById('writeArea').style.display  = curMode==='write'  ? 'block' : 'none';
+  document.getElementById('choiceArea').style.display = (curMode==='choice' || curMode==='listen') ? 'block' : 'none';
+  document.getElementById('btnCheck').style.display = curMode==='write' ? 'block' : 'none';
+
+  if (curMode === 'choice' || curMode === 'listen') renderChoices(item);
+  if (curMode === 'listen') {
+    currentWord = item.tr;
+    document.getElementById('btnListenRepeat').style.display = 'inline-flex';
+    setTimeout(() => speakWord(), 400);
+  } else {
+    document.getElementById('btnListenRepeat').style.display = 'none';
+  }
+  if (curMode === 'write') document.getElementById('answerInput').focus();
+}
+
+function renderChoices(correctItem) {
+  const allWords = vocab[state.student][state.lang][state.topic];
+  const curMode = state._curMode || state.mode;
+  const isListen = curMode === 'listen';
+  const others = shuffle(allWords.filter(w => w.tr !== correctItem.tr)).slice(0,3);
+  const options = shuffle([correctItem, ...others]);
+  const grid = document.getElementById('choicesGrid');
+  grid.innerHTML='';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className='choice-btn';
+    // Listen mode: show emoji + Spanish; Choice mode: show translation
+    if (isListen) {
+      btn.textContent = opt.emoji + ' ' + opt.es;
+    } else {
+      btn.textContent = opt.tr;
+    }
+    btn.onclick = () => handleChoice(opt.tr===correctItem.tr, btn, correctItem);
+    grid.appendChild(btn);
+  });
+}
+
+function handleChoice(isCorrect, btn, item) {
+  if (checked) return;
+  checked=true;
+  document.querySelectorAll('.choice-btn').forEach(b => b.disabled=true);
+  processResult(isCorrect, item, btn);
+}
+
+function checkAnswer() {
+  if (checked) return;
+  const input = document.getElementById('answerInput');
+  const userAnswer = normalize(input.value);
+  if (!userAnswer) return;
+  const item = isRepass ? currentRepass.item : deck[current];
+  const correct = normalize(item.tr);
+  const alts = (item.alts||[]).map(normalize);
+  const isCorrect = userAnswer===correct || alts.includes(userAnswer);
+  checked=true; input.disabled=true;
+  processResult(isCorrect, item, null);
+}
+
+function processResult(isCorrect, item, choiceBtn) {
+  const feedback = document.getElementById('feedback');
+  const gameCard = document.getElementById('gameCard');
+  const correctAnswerEl = document.getElementById('correctAnswer');
+
+  if (isCorrect) {
+    if (choiceBtn) choiceBtn.classList.add('choice-correct');
+    document.getElementById('answerInput').className='answer-input input-correct';
+    gameCard.className='game-card correct';
+    feedback.className='feedback ok';
+    if (isRepass) {
+      currentRepass.timesLeft--;
+      if (currentRepass.timesLeft<=0) { repassQueue.shift(); feedback.textContent='✅ ¡Perfecto! Ya la tienes dominada 🌟'; }
+      else { const cm = state._curMode || state.mode; feedback.textContent='✅ ¡Bien! '+(cm==='write'?'Escríbela ':'Elige ')+currentRepass.timesLeft+' vez más'; }
+    } else {
+      scoreYes++;
+      feedback.textContent='✅ ¡Correcto! 🌟';
+    }
+    gameCard.classList.add('pop');
+    setTimeout(()=>gameCard.classList.remove('pop'),300);
+  } else {
+    if (choiceBtn) {
+      choiceBtn.classList.add('choice-wrong');
+      document.querySelectorAll('.choice-btn').forEach(b => { if(normalize(b.textContent)===normalize(item.tr)) b.classList.add('choice-correct'); });
+    }
+    document.getElementById('answerInput').className='answer-input input-wrong';
+    gameCard.className='game-card wrong';
+    feedback.className='feedback fail';
+    gameCard.classList.add('shake');
+    setTimeout(()=>gameCard.classList.remove('shake'),400);
+    if (isRepass) {
+      feedback.textContent='❌ Casi... La respuesta correcta es:';
+      correctAnswerEl.innerHTML='<strong>'+item.tr+'</strong>';
+      currentRepass.timesLeft=2;
+      repassQueue.push(repassQueue.shift());
+    } else {
+      scoreNo++;
+      feedback.textContent='❌ La respuesta correcta es:';
+      correctAnswerEl.innerHTML='<strong>'+item.tr+'</strong>';
+      repassQueue.push({item, timesLeft:2});
+    }
+  }
+
+  updateScores();
+  document.getElementById('btnCheck').style.display='none';
+  document.getElementById('btnNext').style.display='block';
+
+  currentWord=item.tr;
+  const audioBtn=document.getElementById('btnAudio');
+  audioBtn.style.display='inline-flex';
+  audioBtn.innerHTML='🔊 Escuchar';
+  audioBtn.classList.remove('speaking');
+  setTimeout(()=>speakWord(), 600);
+}
+
+function nextCard() {
+  if (isRepass) { repassQueue.length>0 ? showCard() : showEnd(); return; }
+  current++;
+  if (current>=deck.length && repassQueue.length>0) showCard();
+  else if (current>=deck.length) showEnd();
+  else showCard();
+}
+
+function handleKey(e) {
+  if (e.key==='Enter') { if(!checked) checkAnswer(); else nextCard(); }
+}
+
+function insertChar(ch) {
+  // Insert into whichever input is focused
+  const active = document.activeElement;
+  if (active && (active.classList.contains('answer-input') || active.classList.contains('conj-input'))) {
+    const s = active.selectionStart, end = active.selectionEnd;
+    active.value = active.value.slice(0,s) + ch + active.value.slice(end);
+    active.selectionStart = active.selectionEnd = s + 1;
+    active.focus();
+  }
+}
+
+function updateScores() {
+  document.getElementById('scoreYes').textContent=scoreYes;
+  document.getElementById('scoreNo').textContent=scoreNo;
+}
+
+// ════════════════════════════════════════════════════════
+//  J U E G O  (VERBOS)
+// ════════════════════════════════════════════════════════
+const pronouns = ["je","tu","il/elle","nous","vous","ils/elles"];
+let verbRepassQueue = []; // [{pronoun, timesLeft}]
+let verbChecked = false;
+
+function startVerbGame() {
+  currentLang = langConfig[state.lang]?.speechLang || 'fr-FR';
+  verbRepassQueue = [];
+  verbChecked = false;
+  showVerbRound(false);
+}
+
+function showVerbRound(isRepass) {
+  const v = state.verb;
+
+  document.getElementById('verbTitleGame').textContent = v.display;
+  document.getElementById('verbEmoji').textContent = v.emoji;
+  document.getElementById('verbInfinitive').textContent = `Presente — ${v.es}`;
+  document.getElementById('verbRepassBadge').style.display = isRepass ? 'inline-block' : 'none';
+  document.getElementById('verbCard').className = 'game-card';
+
+  // Special chars
+  const chars = langConfig[state.lang]?.chars || [];
+  const sc = document.getElementById('verbSpecialChars');
+  sc.innerHTML = '';
+  chars.forEach(ch => {
+    const b = document.createElement('button');
+    b.className = 'char-btn'; b.textContent = ch;
+    b.onclick = () => insertChar(ch);
+    sc.appendChild(b);
+  });
+
+  // Which pronouns to show?
+  const showPronouns = isRepass
+    ? verbRepassQueue.map(r => r.pronoun)
+    : pronouns;
+
+  // Repass label
+  const repassLabel = document.getElementById('verbRepassLabel');
+  if (isRepass) {
+    const total = verbRepassQueue.reduce((a, r) => a + r.timesLeft, 0);
+    repassLabel.textContent = '📚 Repaso: ' + total + ' vez' + (total !== 1 ? 'es' : '') + ' más';
+    repassLabel.style.display = 'block';
+  } else {
+    repassLabel.style.display = 'none';
+  }
+
+  // Build conjugation rows
+  const container = document.getElementById('conjRows');
+  container.innerHTML = '';
+  let inputIndex = 0;
+  showPronouns.forEach((p) => {
+    const idx = inputIndex++;
+    const row = document.createElement('div');
+    row.className = 'conj-row';
+
+    const label = document.createElement('span');
+    label.className = 'conj-pronoun';
+    label.textContent = p;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'conj-input';
+    input.id = 'conjInput' + idx;
+    input.dataset.pronoun = p;
+    input.placeholder = '...';
+    input.autocomplete = 'off';
+    input.autocorrect = 'off';
+    input.spellcheck = false;
+    input.onkeydown = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const next = document.getElementById('conjInput' + (idx + 1));
+        if (next && !next.disabled) next.focus();
+        else checkVerb();
+      }
+    };
+
+    row.appendChild(label);
+    row.appendChild(input);
+    container.appendChild(row);
+
+    // Correction row
+    const corr = document.createElement('div');
+    corr.className = 'conj-correction';
+    corr.id = 'conjCorr' + idx;
+    container.appendChild(corr);
+  });
+
+  verbChecked = false;
+  document.getElementById('verbFeedback').textContent = '';
+  document.getElementById('verbFeedback').className = 'feedback';
+  document.getElementById('verbBtnCheck').style.display = 'block';
+  document.getElementById('verbBtnNext').style.display = 'none';
+  document.getElementById('verbBtnAudio').style.display = 'none';
+
+  goScreen('screenVerb');
+  document.getElementById('conjInput0').focus();
+}
+
+function checkVerb() {
+  if (verbChecked) return;
+  verbChecked = true;
+  const v = state.verb;
+  let correctCount = 0;
+  const inputs = document.querySelectorAll('#conjRows .conj-input');
+  const total = inputs.length;
+  const isRepass = verbRepassQueue.length > 0 && document.getElementById('verbRepassBadge').style.display !== 'none';
+
+  inputs.forEach((input, i) => {
+    const p = input.dataset.pronoun;
+    const corr = document.getElementById('conjCorr' + i);
+    const userAnswer = normalize(input.value);
+    const accepted = v.conjugation[p].map(normalize);
+    const isCorrect = accepted.includes(userAnswer);
+
+    input.disabled = true;
+    if (isCorrect) {
+      input.className = 'conj-input input-correct';
+      corr.textContent = '';
+      correctCount++;
+      // If repass, decrease counter
+      if (isRepass) {
+        const entry = verbRepassQueue.find(r => r.pronoun === p);
+        if (entry) entry.timesLeft--;
+      }
+    } else {
+      input.className = 'conj-input input-wrong';
+      corr.textContent = '→ ' + v.conjugation[p][0];
+      // Add to repass or reset counter
+      if (isRepass) {
+        const entry = verbRepassQueue.find(r => r.pronoun === p);
+        if (entry) entry.timesLeft = 2; // reset to 2
+      } else {
+        // Only add if not already queued
+        if (!verbRepassQueue.find(r => r.pronoun === p)) {
+          verbRepassQueue.push({ pronoun: p, timesLeft: 2 });
+        }
+      }
+    }
+  });
+
+  // Clean completed repass items
+  verbRepassQueue = verbRepassQueue.filter(r => r.timesLeft > 0);
+
+  const feedback = document.getElementById('verbFeedback');
+  if (correctCount === total) {
+    feedback.className = 'feedback ok';
+    if (isRepass && verbRepassQueue.length === 0) {
+      feedback.textContent = '✅ ¡Perfecto! Ya dominas todas las personas 🌟';
+    } else if (isRepass) {
+      feedback.textContent = '✅ ¡Bien! Quedan algunas por repasar';
+    } else {
+      feedback.textContent = '✅ ¡Perfecto! Las 6 correctas 🌟';
+    }
+    document.getElementById('verbCard').className = 'game-card correct pop';
+  } else {
+    feedback.className = 'feedback fail';
+    feedback.textContent = `❌ ${correctCount} de ${total} correctas. ¡Hay que repasar las que fallan!`;
+    document.getElementById('verbCard').className = 'game-card wrong shake';
+  }
+  setTimeout(() => {
+    document.getElementById('verbCard').className = 'game-card';
+  }, 400);
+
+  document.getElementById('verbBtnCheck').style.display = 'none';
+  document.getElementById('verbBtnNext').style.display = 'block';
+
+  // Update next button text
+  const btnNext = document.getElementById('verbBtnNext');
+  if (verbRepassQueue.length > 0) {
+    btnNext.textContent = 'Repasar las que fallan →';
+  } else {
+    btnNext.textContent = '🔄 Otro verbo';
+  }
+
+  // Audio: speak the full conjugation
+  const audioBtn = document.getElementById('verbBtnAudio');
+  audioBtn.style.display = 'inline-flex';
+  audioBtn.innerHTML = '🔊 Escuchar';
+  audioBtn.classList.remove('speaking');
+  const spokenPronouns = isRepass ? [...new Set(Array.from(inputs).map(i => i.dataset.pronoun))] : pronouns;
+  currentWord = spokenPronouns.map(p => {
+    const form = v.conjugation[p][0];
+    const pronDisplay = p.replace('/elle','').replace('/elles','');
+    return pronDisplay + ' ' + form;
+  }).join(', ');
+  setTimeout(() => speakVerb(), 600);
+}
+
+function nextVerbStep() {
+  if (verbRepassQueue.length > 0) {
+    showVerbRound(true);
+  } else {
+    goScreen('screenSetup');
+  }
+}
+
+function speakVerb() {
+  if (!currentWord || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const btn = document.getElementById('verbBtnAudio');
+  btn.classList.add('speaking'); btn.textContent = '🔊 Hablando...';
+  const utter = new SpeechSynthesisUtterance(currentWord);
+  utter.lang = currentLang; utter.rate = 0.75;
+  const voices = window.speechSynthesis.getVoices();
+  const voice = voices.find(v => v.lang.startsWith(currentLang.split('-')[0]));
+  if (voice) utter.voice = voice;
+  utter.onend = utter.onerror = () => { btn.classList.remove('speaking'); btn.innerHTML = '🔊 Escuchar'; };
+  window.speechSynthesis.speak(utter);
+}
+
+// ════════════════════════════════════════════════════════
+//  J U E G O  (VERBOS IRREGULARES)
+// ════════════════════════════════════════════════════════
+let irregDeck=[], irregCurrent=0, irregScoreYes=0, irregScoreNo=0;
+let irregRepassQueue=[], irregChecked=false, irregIsRepass=false;
+
+function renderIrregNumOptions() {
+  const totalVerbs = (verbs[state.student]?.[state.lang] || []).length;
+  const base = [5,10,15,20,30];
+  const options = base.filter(n => n < totalVerbs);
+  options.push(totalVerbs);
+
+  const container = document.getElementById('irregNumOptions');
+  container.innerHTML = '';
+  options.forEach(n => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.style.minWidth = '60px';
+    btn.innerHTML = n === totalVerbs
+      ? `💯<br><small style="font-size:0.72rem">Todos (${n})</small>`
+      : n;
+    btn.onclick = () => {
+      state.irregNum = n;
+      container.querySelectorAll('.opt-btn').forEach(b => b.className = 'opt-btn');
+      btn.classList.add('sel-orange');
+      checkStartReady();
+    };
+    container.appendChild(btn);
+  });
+  document.getElementById('cardIrregNum').style.display = 'block';
+}
+
+function startIrregularGame() {
+  const allVerbs = verbs[state.student][state.lang];
+  irregDeck = shuffle(allVerbs).slice(0, state.irregNum);
+  irregRepassQueue = []; irregCurrent = 0; irregScoreYes = 0; irregScoreNo = 0;
+  irregChecked = false; irregIsRepass = false;
+  currentLang = langConfig[state.lang]?.speechLang || 'en-GB';
+
+  goScreen('screenIrreg');
+  updateIrregScores();
+  showIrregCard();
+}
+
+function showIrregCard() {
+  irregChecked = false; irregIsRepass = false;
+
+  // Reset all fields
+  ['irregInf','irregPast','irregPast2','irregPP'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.className = 'conj-input'; el.disabled = false; }
+  });
+  ['irregInfCorr','irregPastCorr','irregPast2Corr','irregPPCorr'].forEach(id => {
+    document.getElementById(id).textContent = '';
+  });
+  document.getElementById('irregCard').className = 'game-card';
+  document.getElementById('irregFeedback').textContent = '';
+  document.getElementById('irregFeedback').className = 'feedback';
+  document.getElementById('irregBtnCheck').style.display = 'block';
+  document.getElementById('irregBtnNext').style.display = 'none';
+  document.getElementById('irregBtnAudio').style.display = 'none';
+  document.getElementById('irregRepassBadge').style.display = 'none';
+
+  if (irregCurrent >= irregDeck.length) {
+    if (irregRepassQueue.length > 0) { startIrregRepass(); return; }
+    else { showIrregEnd(); return; }
+  }
+
+  const v = irregDeck[irregCurrent];
+  setupIrregDisplay(v, false);
+
+  const pct = (irregCurrent / irregDeck.length) * 100;
+  document.getElementById('irregProgress').style.width = pct + '%';
+  document.getElementById('irregProgressLabel').textContent = (irregCurrent+1) + ' / ' + irregDeck.length;
+
+  // Enter key navigation
+  document.getElementById('irregInf').onkeydown = (e) => { if(e.key==='Enter') { e.preventDefault(); document.getElementById('irregPast').focus(); } };
+  document.getElementById('irregPast').onkeydown = (e) => {
+    if(e.key==='Enter') {
+      e.preventDefault();
+      const p2 = document.getElementById('irregPast2');
+      if (p2.style.display !== 'none' && document.getElementById('irregPast2Row').style.display !== 'none') p2.focus();
+      else document.getElementById('irregPP').focus();
+    }
+  };
+  document.getElementById('irregPast2').onkeydown = (e) => { if(e.key==='Enter') { e.preventDefault(); document.getElementById('irregPP').focus(); } };
+  document.getElementById('irregPP').onkeydown = (e) => { if(e.key==='Enter') { e.preventDefault(); if(!irregChecked) checkIrregular(); else nextIrregular(); } };
+
+  document.getElementById('irregInf').focus();
+}
+
+function setupIrregDisplay(v, isRepass) {
+  document.getElementById('irregEmoji').textContent = v.emoji;
+  document.getElementById('irregVerb').textContent = v.es;
+  document.getElementById('irregPastNote').textContent = v.pastNote || '';
+
+  // Show Past 2 row only if verb "be" (has 2 distinct past forms)
+  const has2Past = v.past.length >= 2 && normalize(v.past[0]) !== normalize(v.past[1]);
+  document.getElementById('irregPast2Row').style.display = has2Past ? 'flex' : 'none';
+  if (!has2Past) {
+    document.getElementById('irregPast2').value = '';
+    document.getElementById('irregPast2Corr').textContent = '';
+  }
+
+  if (isRepass) {
+    document.getElementById('irregRepassBadge').style.display = 'inline-block';
+    const total = irregRepassQueue.reduce((a,r) => a+r.timesLeft, 0);
+    document.getElementById('irregProgress').style.width = '100%';
+    document.getElementById('irregProgressLabel').textContent = '📚 Repaso: '+total+' vez'+(total!==1?'es':'')+' más';
+  }
+}
+
+function startIrregRepass() {
+  irregIsRepass = true;
+  const entry = irregRepassQueue[0];
+  const v = entry.item;
+  irregChecked = false;
+
+  // Reset fields
+  ['irregInf','irregPast','irregPast2','irregPP'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.className = 'conj-input'; el.disabled = false; }
+  });
+  ['irregInfCorr','irregPastCorr','irregPast2Corr','irregPPCorr'].forEach(id => {
+    document.getElementById(id).textContent = '';
+  });
+  document.getElementById('irregCard').className = 'game-card';
+  document.getElementById('irregFeedback').textContent = '';
+  document.getElementById('irregFeedback').className = 'feedback';
+  document.getElementById('irregBtnCheck').style.display = 'block';
+  document.getElementById('irregBtnNext').style.display = 'none';
+  document.getElementById('irregBtnAudio').style.display = 'none';
+
+  setupIrregDisplay(v, true);
+
+  document.getElementById('irregInf').onkeydown = (e) => { if(e.key==='Enter') { e.preventDefault(); document.getElementById('irregPast').focus(); } };
+  document.getElementById('irregPast').onkeydown = (e) => {
+    if(e.key==='Enter') {
+      e.preventDefault();
+      const has2 = document.getElementById('irregPast2Row').style.display !== 'none';
+      if (has2) document.getElementById('irregPast2').focus();
+      else document.getElementById('irregPP').focus();
+    }
+  };
+  document.getElementById('irregPast2').onkeydown = (e) => { if(e.key==='Enter') { e.preventDefault(); document.getElementById('irregPP').focus(); } };
+  document.getElementById('irregPP').onkeydown = (e) => { if(e.key==='Enter') { e.preventDefault(); if(!irregChecked) checkIrregular(); else nextIrregular(); } };
+
+  document.getElementById('irregInf').focus();
+}
+
+function checkIrregular() {
+  if (irregChecked) return;
+  irregChecked = true;
+
+  const v = irregIsRepass ? irregRepassQueue[0].item : irregDeck[irregCurrent];
+  let allCorrect = true;
+
+  // Check infinitive
+  const infVal = normalize(document.getElementById('irregInf').value);
+  const infOk = v.inf.map(normalize).includes(infVal);
+  document.getElementById('irregInf').disabled = true;
+  if (infOk) { document.getElementById('irregInf').className = 'conj-input input-correct'; }
+  else { document.getElementById('irregInf').className = 'conj-input input-wrong'; document.getElementById('irregInfCorr').textContent = '→ ' + v.inf[0]; allCorrect = false; }
+
+  // Check past
+  const has2Past = v.past.length >= 2 && normalize(v.past[0]) !== normalize(v.past[1]);
+  const pastVal = normalize(document.getElementById('irregPast').value);
+  document.getElementById('irregPast').disabled = true;
+
+  if (has2Past) {
+    // Need both past forms
+    const past2Val = normalize(document.getElementById('irregPast2').value);
+    document.getElementById('irregPast2').disabled = true;
+    const pastAccepted = v.past.map(normalize);
+    const bothGiven = [pastVal, past2Val];
+    const past1Ok = pastAccepted.includes(pastVal);
+    const past2Ok = pastAccepted.includes(past2Val);
+    const bothDifferent = pastVal !== past2Val;
+    const pastFullOk = past1Ok && past2Ok && bothDifferent;
+
+    if (past1Ok) { document.getElementById('irregPast').className = 'conj-input input-correct'; }
+    else { document.getElementById('irregPast').className = 'conj-input input-wrong'; document.getElementById('irregPastCorr').textContent = '→ ' + v.past[0]; allCorrect = false; }
+
+    if (past2Ok && bothDifferent) { document.getElementById('irregPast2').className = 'conj-input input-correct'; }
+    else { document.getElementById('irregPast2').className = 'conj-input input-wrong'; document.getElementById('irregPast2Corr').textContent = '→ ' + v.past[1]; allCorrect = false; }
+  } else {
+    const pastOk = v.past.map(normalize).includes(pastVal);
+    if (pastOk) { document.getElementById('irregPast').className = 'conj-input input-correct'; }
+    else { document.getElementById('irregPast').className = 'conj-input input-wrong'; document.getElementById('irregPastCorr').textContent = '→ ' + v.past[0]; allCorrect = false; }
+  }
+
+  // Check past participle
+  const ppVal = normalize(document.getElementById('irregPP').value);
+  document.getElementById('irregPP').disabled = true;
+  const ppOk = v.pp.map(normalize).includes(ppVal);
+  if (ppOk) { document.getElementById('irregPP').className = 'conj-input input-correct'; }
+  else { document.getElementById('irregPP').className = 'conj-input input-wrong'; document.getElementById('irregPPCorr').textContent = '→ ' + v.pp[0]; allCorrect = false; }
+
+  // Feedback
+  const feedback = document.getElementById('irregFeedback');
+  if (allCorrect) {
+    feedback.className = 'feedback ok';
+    document.getElementById('irregCard').className = 'game-card correct pop';
+    if (irregIsRepass) {
+      const entry = irregRepassQueue[0];
+      entry.timesLeft--;
+      if (entry.timesLeft <= 0) { irregRepassQueue.shift(); feedback.textContent = '✅ ¡Perfecto! Ya lo dominas 🌟'; }
+      else { feedback.textContent = '✅ ¡Bien! Escríbelo ' + entry.timesLeft + ' vez más'; }
+    } else {
+      irregScoreYes++;
+      feedback.textContent = '✅ ¡Correcto! 🌟';
+    }
+  } else {
+    feedback.className = 'feedback fail';
+    document.getElementById('irregCard').className = 'game-card wrong shake';
+    if (irregIsRepass) {
+      feedback.textContent = '❌ Repasa las que fallan';
+      irregRepassQueue[0].timesLeft = 2;
+      irregRepassQueue.push(irregRepassQueue.shift());
+    } else {
+      irregScoreNo++;
+      feedback.textContent = '❌ ¡A repasar este verbo!';
+      irregRepassQueue.push({ item: v, timesLeft: 2 });
+    }
+  }
+  setTimeout(() => { document.getElementById('irregCard').className = 'game-card'; }, 400);
+
+  updateIrregScores();
+  document.getElementById('irregBtnCheck').style.display = 'none';
+  document.getElementById('irregBtnNext').style.display = 'block';
+
+  // Audio
+  currentWord = v.inf[0] + ', ' + v.past[0] + ', ' + v.pp[0];
+  const audioBtn = document.getElementById('irregBtnAudio');
+  audioBtn.style.display = 'inline-flex';
+  audioBtn.innerHTML = '🔊 Escuchar';
+  audioBtn.classList.remove('speaking');
+  setTimeout(() => speakIrreg(), 600);
+}
+
+function nextIrregular() {
+  if (irregIsRepass) {
+    if (irregRepassQueue.length > 0) startIrregRepass();
+    else showIrregEnd();
+    return;
+  }
+  irregCurrent++;
+  if (irregCurrent >= irregDeck.length && irregRepassQueue.length > 0) showIrregCard();
+  else if (irregCurrent >= irregDeck.length) showIrregEnd();
+  else showIrregCard();
+}
+
+function updateIrregScores() {
+  document.getElementById('irregScoreYes').textContent = irregScoreYes;
+  document.getElementById('irregScoreNo').textContent = irregScoreNo;
+}
+
+function showIrregEnd() {
+  // Reuse the vocab end screen
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  deck = irregDeck; scoreYes = irregScoreYes; scoreNo = irregScoreNo;
+  showEnd();
+}
+
+function speakIrreg() {
+  if (!currentWord || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const btn = document.getElementById('irregBtnAudio');
+  btn.classList.add('speaking'); btn.textContent = '🔊 Hablando...';
+  const utter = new SpeechSynthesisUtterance(currentWord);
+  utter.lang = currentLang; utter.rate = 0.8;
+  const voices = window.speechSynthesis.getVoices();
+  const voice = voices.find(v => v.lang.startsWith(currentLang.split('-')[0]));
+  if (voice) utter.voice = voice;
+  utter.onend = utter.onerror = () => { btn.classList.remove('speaking'); btn.innerHTML = '🔊 Escuchar'; };
+  window.speechSynthesis.speak(utter);
+}
+
+// ════════════════════════════════════════════════════════
+//  F I N A L  (VOCABULARIO)
+// ════════════════════════════════════════════════════════
+function showEnd() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  goScreen('screenEnd');
+  const grade = Math.round((scoreYes/deck.length)*100)/10;
+  const gradeDisplay = Number.isInteger(grade) ? grade : grade.toFixed(1);
+  const gc = document.getElementById('gradeCircle');
+  gc.className='grade-circle '+(grade===10?'grade-10':grade>=7?'grade-high':grade>=5?'grade-mid':'grade-low');
+  document.getElementById('gradeNum').textContent=gradeDisplay;
+  const rows=[[10,'🏆','¡Nota perfecta! 🌟',`¡Has acertado todas! Increíble 🌟`],[9,'🥇','¡Sobresaliente!',`Has acertado ${scoreYes} de ${deck.length}. ¡Casi perfecta!`],[7,'😊','¡Notable!',`Has acertado ${scoreYes} de ${deck.length}. ¡Muy bien!`],[5,'💪','¡Aprobada!',`Has acertado ${scoreYes} de ${deck.length}. Con un poco más lo clava.`],[0,'📚','¡A repasar!',`Has acertado ${scoreYes} de ${deck.length}. ¡No pasa nada, a practicar!`]];
+  const [,trophy,title,msg]=rows.find(([min])=>grade>=min);
+  document.getElementById('endTrophy').textContent=trophy;
+  document.getElementById('endTitle').textContent=title;
+  document.getElementById('endMsg').textContent=msg;
+}
+
+// ════════════════════════════════════════════════════════
+//  A U D I O  (VOCABULARIO)
+// ════════════════════════════════════════════════════════
+function speakWord() {
+  if (!currentWord || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const btn=document.getElementById('btnAudio');
+  btn.classList.add('speaking'); btn.textContent='🔊 Hablando...';
+  const utter=new SpeechSynthesisUtterance(currentWord);
+  utter.lang=currentLang; utter.rate=0.85;
+  const voices=window.speechSynthesis.getVoices();
+  const voice=voices.find(v=>v.lang.startsWith(currentLang.split('-')[0]));
+  if (voice) utter.voice=voice;
+  utter.onend=utter.onerror=()=>{ btn.classList.remove('speaking'); btn.innerHTML='🔊 Escuchar'; };
+  window.speechSynthesis.speak(utter);
+}
+
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
+}
+</script>
+</body>
+</html>
